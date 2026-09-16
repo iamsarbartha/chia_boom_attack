@@ -1,0 +1,22 @@
+chia up --add cluster.yaml
+
+curl -sS --connect-timeout 10 --max-time 120 \
+  -w '\nHTTP status: %{http_code}\n' \
+  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+  -H "Content-Type: application/json" \
+  "https://aiplatform.googleapis.com/v1/projects/${GOOGLE_CLOUD_PROJECT}/locations/global/publishers/google/models/${CHIASTRA_GEMINI_MODEL}:generateContent" \
+  -d '{
+    "contents": [{
+      "role": "user",
+      "parts": [{"text": "Reply with: Connection successful"}]
+    }]
+  }'
+
+chia job submit \
+  --working-dir . \
+  --runtime-env-json "{\"env_vars\": {
+    \"GOOGLE_CLOUD_PROJECT\": \"$GOOGLE_CLOUD_PROJECT\",
+    \"GOOGLE_CLOUD_LOCATION\": \"global\",
+    \"CHIASTRA_REPORT\": \"$REPORT_PATH\"
+  }}" \
+  -- python chiastra_loop.py

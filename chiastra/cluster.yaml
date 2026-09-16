@@ -1,0 +1,72 @@
+provider:
+    head_ip: ${THIS_MACHINE}
+
+auth:
+    ssh_user: ${USER}
+    #ssh_private_key: ~/.ssh/id_ed25519
+
+available_node_types:
+    hello_chipyard:
+        resources: {"chipyard": 1}
+        num_workers: 1
+        compatible_ips: ["${THIS_MACHINE}"]
+        worker_setup_commands: ["source /home/ray/chipyard/env.sh"]
+        docker:
+            image: "ghcr.io/ucb-bar/chia-chisel-build:latest"
+            container_name: "chia-chipyard-${USER}"
+            run_options:
+                - --shm-size=10.24gb
+                - "-v /scratch/${USER}/projects/chia/tmp/chipyard:/scratch/${USER}/projects/chia/tmp"
+            pull_timeout: 7200 # default value for this is 600 seconds but chia-chisel-build is large
+
+    hello_verilator:
+        resources: {"verilator_run": 1}
+        num_workers: 1
+        compatible_ips: ["${THIS_MACHINE}"]
+        docker:
+            image: "ghcr.io/ucb-bar/chia-verilator-run:latest"
+            container_name: "chia-verilator-${USER}"
+            run_options:
+                - --ulimit nofile=65536:65536
+                - --shm-size=10.24gb
+                - "-v /scratch/${USER}/projects/chia/tmp/verilator:/scratch/${USER}/projects/chia/tmp"
+
+    hello_opencode:
+        resources: {"opencode_creds": 1}
+        worker_setup_commands: ["source ~/.bashrc"]
+        num_workers: 1
+        compatible_ips: ["${THIS_MACHINE}"]
+        docker:
+            image: ghcr.io/ucb-bar/chia-opencode:latest
+            container_name: "chia-opencode-${USER}"
+            run_options:
+                - "-v /scratch/${USER}/projects/chia/tmp/opencode:/scratch/${USER}/projects/chia/tmp"
+
+    hello_vertex:
+        resources: {"vertex_creds": 1}
+        num_workers: 1
+        compatible_ips: ["${THIS_MACHINE}"]
+        docker:
+            image: "ghcr.io/ucb-bar/chia:latest"
+            container_name: "chia-vertex-${USER}"
+            run_options:
+                - "--user $(id -u):100"
+                - "-v ${HOME}/.config/gcloud:/home/ray/.config/gcloud"
+                - "-e GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT}"
+                - "-e GOOGLE_CLOUD_LOCATION=global"
+                - "-v /scratch/${USER}/projects/chia/tmp/vertex:/scratch/${USER}/projects/chia/tmp"
+
+head_env_commands: ["source /scratch/sbanerjee76/utils/miniconda/etc/profile.d/conda.sh && conda activate chia_env"]
+head_setup_commands: 
+    - "source /scratch/sbanerjee76/utils/miniconda/etc/profile.d/conda.sh && conda activate chia_env"
+    - "install -d -m 1777 /scratch/${USER}/projects/chia/tmp/{chipyard,verilator,opencode,vertex}"
+head_start_ray_commands: 
+    - "source /scratch/sbanerjee76/utils/miniconda/etc/profile.d/conda.sh && conda activate chia_env && ray stop"
+    - "source /scratch/sbanerjee76/utils/miniconda/etc/profile.d/conda.sh && conda activate chia_env && \
+        ray start --head --port=6379 \
+        --include-dashboard=True --dashboard-agent-listen-port=0 \
+        --temp-dir=/scratch/sbanerjee76/projects/chia/tmp"
+
+worker_start_ray_commands:
+    - "ray stop"
+    - "ray start --address=$RAY_HEAD_IP:6379 --dashboard-agent-listen-port=0"
