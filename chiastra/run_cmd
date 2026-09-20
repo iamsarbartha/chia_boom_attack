@@ -1,3 +1,6 @@
+# One-time/update install from projects/chiastra:
+python -m pip install -e ../..
+
 chia up --add cluster.yaml
 
 curl -sS --connect-timeout 10 --max-time 120 \
@@ -17,6 +20,29 @@ chia job submit \
   --runtime-env-json "{\"env_vars\": {
     \"GOOGLE_CLOUD_PROJECT\": \"$GOOGLE_CLOUD_PROJECT\",
     \"GOOGLE_CLOUD_LOCATION\": \"global\",
+    \"GOOGLE_GENAI_USE_ENTERPRISE\": \"TRUE\",
     \"CHIASTRA_REPORT\": \"$REPORT_PATH\"
+  }}" \
+  -- python chiastra_loop.py
+
+
+  # ---- New run commands ---- #
+export GOOGLE_CLOUD_PROJECT="YOUR_PROJECT_ID"
+export GOOGLE_CLOUD_LOCATION="global"
+export CHIASTRA_GEMINI_MODEL="gemini-3.5-flash-lite"
+export REPORT_PATH="$PWD/output/boom_cache_report.md"
+
+python -m pip install -e ../..
+chia up --add cluster.yaml
+
+chia job submit \
+  --working-dir . \
+  --runtime-env-json "{\"env_vars\": {
+    \"GOOGLE_CLOUD_PROJECT\": \"$GOOGLE_CLOUD_PROJECT\",
+    \"GOOGLE_CLOUD_LOCATION\": \"$GOOGLE_CLOUD_LOCATION\",
+    \"GOOGLE_GENAI_USE_ENTERPRISE\": \"TRUE\",
+    \"CHIASTRA_GEMINI_MODEL\": \"$CHIASTRA_GEMINI_MODEL\",
+    \"CHIASTRA_REPORT\": \"$REPORT_PATH\",
+    \"CHIASTRA_OUTPUT_DIR\": \"$PWD/output\"
   }}" \
   -- python chiastra_loop.py

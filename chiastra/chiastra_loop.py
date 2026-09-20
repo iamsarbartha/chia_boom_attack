@@ -1,28 +1,38 @@
-"""Build BOOM Verilator RTL and ask Gemini to report its cache architecture."""
+"""Build BOOM and run the Google ADK vulnerability-exploration workflow."""
 
 from __future__ import annotations
 
+import asyncio
 import fnmatch
+import json
 import os
+import re
 from pathlib import Path
+from typing import Any
+
+from google.genai import types
 
 from chia.base.ChiaFunction import get
 from chia.base.llm_call import QueryResult
 from chia.base.tools.ChiaTool import ChiaTool
 from chia.chipyard.chisel_build_node import ChiselBuildNode
+from chia.chipyard.riscv_build_node import RiscvBuildNode
 from chia.chipyard.state_def import BuildArtifact, BuildTarget
+from chia.chipyard.verilator_run_node import VerilatorRunNode
 from chia.models.vertex import VertexGeminiLLM
 
 
 CHIPYARD_PATH = Path("/home/ray/chipyard")
 BOOM_CONFIG = os.environ.get("CHIASTRA_BOOM_CONFIG", "MegaBoomV3Config")
-GEMINI_MODEL = os.environ.get(
-    "CHIASTRA_GEMINI_MODEL", "gemini-3.5-flash-lite"
-)
-REPORT_PATH = Path(
-    os.environ.get("CHIASTRA_REPORT", "/tmp/chiastra/boom_cache_report.md")
-)
+GEMINI_MODEL = os.environ.get("CHIASTRA_GEMINI_MODEL", "gemini-3.5-flash-lite")
+REPORT_PATH = Path(os.environ.get("CHIASTRA_REPORT", "/tmp/chiastra/boom_cache_report.md"))
+OUTPUT_DIR = Path(os.environ.get("CHIASTRA_OUTPUT_DIR", str(REPORT_PATH.parent)))
+RISCV_WORK_DIR = os.environ.get("CHIASTRA_RISCV_WORK_DIR", "/tmp/chiastra/riscv")
+VERILATOR_WORK_DIR = os.environ.get("CHIASTRA_VERILATOR_WORK_DIR", "/tmp/chiastra/verilator")
+SIM_TIMEOUT_CYCLES = int(os.environ.get("CHIASTRA_SIM_TIMEOUT_CYCLES", "10000000"))
+SIM_TIMEOUT_SECONDS = int(os.environ.get("CHIASTRA_SIM_TIMEOUT", "600"))
 MAX_TOOL_OUTPUT_CHARS = 40_000
+
 
 
 class VerilatorSourceTool(ChiaTool):
@@ -39,20 +49,15 @@ class VerilatorSourceTool(ChiaTool):
     def _source_files(self) -> list[Path]:
         if not self.root_dir.is_dir():
             return []
-        return sorted(
-            path
-            for path in self.root_dir.rglob("*")
-            if path.is_file() and path.suffix.lower() in self._ALLOWED_SUFFIXES
-        )
+        return sorted(path for path in self.root_dir.rglob("*")
+                      if path.is_file() and path.suffix.lower() in self._ALLOWED_SUFFIXES)
 
     def _resolve_file(self, relative_path: str) -> Path:
         candidate = (self.root_dir / relative_path).resolve()
         try:
             candidate.relative_to(self.root_dir)
         except ValueError as exc:
-            raise ValueError(
-                "Path must stay inside the generated-source directory"
-            ) from exc
+            raise ValueError("Path must stay inside the generated-source directory") from exc
         if candidate.suffix.lower() not in self._ALLOWED_SUFFIXES:
             raise ValueError("Only .v, .sv, and .conf files may be read")
         if not candidate.is_file():
@@ -71,9 +76,7 @@ class VerilatorSourceTool(ChiaTool):
                     break
         return "\n".join(matches) if matches else f"No files matched {glob!r}."
 
-    def search_text(
-        self, text: str, glob: str = "*", max_matches: int = 100
-    ) -> str:
+    def search_text(self, text: str, glob: str = "*", max_matches: int = 100) -> str:
         """Search sources for literal text; return file:line:source evidence."""
         if not text or len(text) > 200:
             raise ValueError("Search text must contain 1-200 characters")
@@ -83,10 +86,7 @@ class VerilatorSourceTool(ChiaTool):
         output_chars = 0
         for path in self._source_files():
             relative = path.relative_to(self.root_dir).as_posix()
-            if not (
-                fnmatch.fnmatch(relative, glob)
-                or fnmatch.fnmatch(path.name, glob)
-            ):
+            if not (fnmatch.fnmatch(relative, glob) or fnmatch.fnmatch(path.name, glob)):
                 continue
             with path.open("r", encoding="utf-8", errors="replace") as source:
                 for line_number, line in enumerate(source, start=1):
@@ -95,19 +95,11 @@ class VerilatorSourceTool(ChiaTool):
                     result = f"{relative}:{line_number}: {line.rstrip()}"
                     results.append(result)
                     output_chars += len(result) + 1
-                    if (
-                        len(results) >= max_matches
-                        or output_chars >= MAX_TOOL_OUTPUT_CHARS
-                    ):
+                    if len(results) >= max_matches or output_chars >= MAX_TOOL_OUTPUT_CHARS:
                         return "\n".join(results)
         return "\n".join(results) if results else f"No matches for {text!r}."
 
-    def read_file(
-        self,
-        relative_path: str,
-        start_line: int = 1,
-        end_line: int = 250,
-    ) -> str:
+    def read_file(self, relative_path: str, start_line: int = 1, end_line: int = 250) -> str:
         """Read a line-numbered file slice, returning at most 400 lines."""
         path = self._resolve_file(relative_path)
         start_line = max(1, start_line)
@@ -123,14 +115,8 @@ class VerilatorSourceTool(ChiaTool):
 
 
 def generated_source_dir(artifact: BuildArtifact) -> Path:
-    """Return the generated output directory for a successful build."""
-    return (
-        CHIPYARD_PATH
-        / "sims"
-        / "verilator"
-        / "generated-src"
-        / f"{artifact.config_package}.harness.TestHarness.{artifact.config}"
-    )
+    return (CHIPYARD_PATH / "sims" / "verilator" / "generated-src"
+            / f"{artifact.config_package}.harness.TestHarness.{artifact.config}")
 
 
 REPORT_PROMPT = """\
@@ -142,11 +128,8 @@ Requirements:
    files and searching for cache, icache, dcache, L2, bank, set, way, tag, data,
    miss/MSHR, and TileLink signals.
 2. Identify the exact processor/configuration represented by the evidence.
-3. Cover instruction, data, and shared/outer caches when present: capacity or
-   derivable SRAM dimensions, sets, ways, line size, banking, ports, miss
-   handling, replacement/coherence clues, and hierarchy connections.
-4. Label values Observed, Derived, or Unknown. Show capacity arithmetic and do
-   not invent parameters absent from the generated RTL.
+3. Cover instruction, data, and shared/outer caches when present.
+4. Label values Observed, Derived, or Unknown. Show capacity arithmetic.
 5. Cite every material claim as relative/file:line or a short line range.
 6. End with a compact hierarchy summary and cache-parameter table.
 
@@ -154,16 +137,147 @@ Return only the Markdown report. Do not edit files.
 """
 
 
+
+def _event_text(event: Any) -> str:
+    content = getattr(event, "content", None)
+    parts = getattr(content, "parts", None) or []
+    return "".join(getattr(part, "text", "") or "" for part in parts)
+
+
+async def run_adk_agent(agent: Any, prompt: str, app_name: str) -> str:
+    """Run one ADK agent in an isolated in-memory session."""
+    try:
+        from google.adk.apps import App
+        from google.adk.runners import InMemoryRunner
+    except ImportError as exc:
+        raise RuntimeError("Google ADK is required; reinstall the project") from exc
+
+    runner = InMemoryRunner(app=App(name=app_name, root_agent=agent))
+    session = await runner.session_service.create_session(
+        app_name=app_name, user_id="chiastra"
+    )
+    message = types.Content(role="user", parts=[types.Part.from_text(text=prompt)])
+    final_text = ""
+    event_count = 0
+    last_event = "none"
+    async for event in runner.run_async(
+        user_id="chiastra", session_id=session.id, new_message=message
+    ):
+        event_count += 1
+        parts = getattr(getattr(event, "content", None), "parts", None) or []
+        calls = [p.function_call.name for p in parts
+                 if getattr(p, "function_call", None)]
+        responses = [p.function_response.name for p in parts
+                     if getattr(p, "function_response", None)]
+        text = _event_text(event)
+        is_final = event.is_final_response()
+        last_event = (
+            f"author={event.author} final={is_final} "
+            f"finish_reason={event.finish_reason} calls={calls} "
+            f"responses={responses} text_length={len(text)} "
+            f"error={event.error_code}: {event.error_message}"
+        )
+        print(f"[ADK] {last_event}", flush=True)
+        if text and event.author == agent.name and is_final:
+            final_text = text
+    if not final_text:
+        raise RuntimeError(
+            f"ADK agent {agent.name} produced no final text after "
+            f"{event_count} events; last event: {last_event}"
+        )
+    return final_text
+
+
+
+def _concise_record(record: dict[str, Any]) -> dict[str, Any]:
+    verbose = {"build_stdout", "build_stderr", "objdump", "simulation_log", "simulation_out"}
+    concise = {key: value for key, value in record.items() if key not in verbose}
+    for key in ("build_stdout", "build_stderr", "simulation_log", "simulation_out"):
+        if key in record:
+            concise[f"{key}_tail"] = str(record[key])[-3000:]
+    return concise
+
+
+def make_boom_execution_tool(
+    simulator: BuildArtifact, execution_records: dict[str, dict[str, Any]]
+):
+    """Expose a bounded C-to-BOOM experiment tool to the ADK subagents."""
+
+    def execute_boom_program(
+        source_code: str, program_name: str, process_id: int = 0
+    ) -> dict[str, Any]:
+        """Compile and run one bare-metal C experiment on BOOM Verilator.
+
+        Args:
+            source_code: Complete C source for the experiment.
+            program_name: Short alphanumeric experiment name used for artifacts.
+            process_id: Optional CHIASTRA_PROCESS_ID value (0, 1, or 2).
+
+        Returns:
+            Build and simulation evidence. passed means simulator success.
+        """
+        if not re.fullmatch(r"[A-Za-z0-9_]{1,48}", program_name):
+            return {"passed": False, "error": "program_name must be a short identifier"}
+        if process_id not in (0, 1, 2):
+            return {"passed": False, "error": "process_id must be 0, 1, or 2"}
+        if program_name in execution_records:
+            return {"passed": False, "error": "program_name was already executed"}
+        if not source_code or len(source_code) > 100_000:
+            return {"passed": False, "error": "source must contain 1-100000 characters"}
+
+        flags = "-O2"
+        if process_id:
+            flags += f" -DCHIASTRA_PROCESS_ID={process_id}"
+        build_node = RiscvBuildNode(timeout_seconds=300)
+        built = get(build_node.build.chia_remote(
+            build_node, source_code.encode(), program_name, RISCV_WORK_DIR,
+            target="verilator", extra_cflags=flags, include_dump=True,
+        ))
+        record: dict[str, Any] = {
+            "program_name": program_name,
+            "process_id": process_id,
+            "build_success": built.success,
+            "build_returncode": built.returncode,
+            "build_stderr_tail": built.stderr[-3000:],
+            "objdump_tail": built.dump[-3000:],
+        }
+        if not built.success:
+            record.update(passed=False, reason="RISC-V compilation failed")
+            execution_records[program_name] = record
+            return _concise_record(record)
+
+        run_node = VerilatorRunNode()
+        run = get(run_node.run.chia_remote(
+            run_node, simulator, built.binary_content, built.binary_name,
+            VERILATOR_WORK_DIR, plusargs={"+loadmem": built.binary_name},
+            timeout_cycles=SIM_TIMEOUT_CYCLES,
+            timeout_seconds=SIM_TIMEOUT_SECONDS, verbose=False,
+        ))
+        record.update(
+            passed=run.success,
+            simulation_returncode=run.returncode,
+            simulation_log=run.log,
+            simulation_out=run.out,
+        )
+        execution_records[program_name] = record
+        return _concise_record(record)
+
+    return execute_boom_program
+
+
+
+
+
 def main() -> None:
     project = os.environ.get("GOOGLE_CLOUD_PROJECT")
     if not project:
         raise RuntimeError("Set GOOGLE_CLOUD_PROJECT before submitting this job")
+    os.environ.setdefault("GOOGLE_GENAI_USE_ENTERPRISE", "TRUE")
+    os.environ.setdefault("GOOGLE_CLOUD_LOCATION", "global")
 
     print(f"Building {BOOM_CONFIG} and generating Verilator RTL...")
     builder = ChiselBuildNode(
-        str(CHIPYARD_PATH),
-        BOOM_CONFIG,
-        target=BuildTarget.VERILATOR,
+        str(CHIPYARD_PATH), BOOM_CONFIG, target=BuildTarget.VERILATOR,
         make_jobs=int(os.environ.get("CHIASTRA_MAKE_JOBS", "32")),
         timeout_seconds=int(os.environ.get("CHIASTRA_BUILD_TIMEOUT", "3600")),
     )
@@ -171,42 +285,87 @@ def main() -> None:
     if not artifact.success:
         raise RuntimeError(
             f"BOOM build failed with exit code {artifact.returncode}:\n"
-            f"{artifact.stderr[-4000:]}"
-        )
+            f"{artifact.stderr[-4000:]}")
 
     source_dir = generated_source_dir(artifact)
     print(f"Deploying read-only source tool at {source_dir}...")
     source_tool = VerilatorSourceTool(
-        "verilator_source",
-        str(source_dir),
+        "verilator_source", str(source_dir),
         task_options={"resources": {"chipyard": 0.01}},
     )
-
     try:
         llm = VertexGeminiLLM(
-            model=GEMINI_MODEL,
-            project=project,
-            location=os.environ.get("GOOGLE_CLOUD_LOCATION", "global"),
+            model=GEMINI_MODEL, project=project,
+            location=os.environ["GOOGLE_CLOUD_LOCATION"],
             system_message=(
                 "You are a senior CPU microarchitect. Be evidence-driven and "
-                "explicit about uncertainty when interpreting generated RTL."
-            ),
+                "explicit about uncertainty when interpreting generated RTL."),
             timeout_seconds=int(os.environ.get("CHIASTRA_LLM_TIMEOUT", "1200")),
             max_tokens=int(os.environ.get("CHIASTRA_MAX_TOKENS", "16000")),
+            # Plain dicts serialize safely from the Ray driver to the worker.
+            client_kwargs={"http_options": {"retry_options": {
+                "attempts": 6,
+                "initial_delay": 5,
+                "max_delay": 60,
+                "jitter": 1,
+                "http_status_codes": [429],
+            }}},
         )
         response: QueryResult = get(
-            llm.prompt.chia_remote(llm, REPORT_PROMPT, tools=[source_tool])
-        )
+            llm.prompt.chia_remote(llm, REPORT_PROMPT, tools=[source_tool]))
         if not response.success:
             raise RuntimeError(
-                f"Gemini did not produce a report (return code {response.returncode})"
-            )
+                f"Gemini did not produce a report (return code {response.returncode})")
         REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
         REPORT_PATH.write_text(response.result, encoding="utf-8")
         print(f"Cache architecture report written to {REPORT_PATH.resolve()}")
-        print(response.result)
     finally:
         source_tool.stop()
+
+
+    # Connect the research, generator, and validator subagents to the built
+    # simulator through a controlled compile-and-run tool.
+    try:
+        import google_agent as agent_infra
+    except ImportError as exc:
+        raise RuntimeError("google_agent.py and google-adk are required") from exc
+
+    execution_records: dict[str, dict[str, Any]] = {}
+    execution_tool = make_boom_execution_tool(artifact, execution_records)
+    for agent in (
+        agent_infra.vulnerability_generator,
+        agent_infra.validator,
+        agent_infra.root_agent,
+    ):
+        agent.tools.append(execution_tool)
+
+    exploration_prompt = f"""\
+	Run the complete BOOM cache-vulnerability exploration workflow against the
+	already-built {BOOM_CONFIG} Verilator target. First delegate the cache report
+	below to vulnerability_research_agent_2 and use its frozen hypothesis and
+	success criteria as the experiment specification. Then delegate source
+	generation to vulnerability_generator. The validator must compile every
+	generator-produced C/assembly experiment with the RISC-V build tool and run
+	the resulting binary in the BOOM Verilator simulator through execute_boom_program.
+	Feed validator compiler/simulation evidence back to the generator for bounded
+	revisions. Treat the cache report as hardware evidence, not as a vulnerability
+	finding. Preserve attempts, distinguish build failures from falsification,
+	and finish with the required status and limitations.
+
+Cache report:
+{response.result}
+"""
+    print("Running the Google ADK BOOM exploration coordinator...")
+    exploration_text = asyncio.run(run_adk_agent(
+        agent_infra.root_agent, exploration_prompt,
+        "chiastra_boom_vulnerability_exploration"))
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    (OUTPUT_DIR / "exploration_report.md").write_text(
+        exploration_text, encoding="utf-8")
+    (OUTPUT_DIR / "exploration_runs.json").write_text(
+        json.dumps(execution_records, indent=2), encoding="utf-8")
+    print(f"Exploration report written to "
+          f"{(OUTPUT_DIR / 'exploration_report.md').resolve()}")
 
 
 if __name__ == "__main__":

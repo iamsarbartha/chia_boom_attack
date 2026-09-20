@@ -403,11 +403,26 @@ class VertexGeminiLLM(LLMCallBase):
         from mcp import ClientSession
         from mcp.client.streamable_http import streamable_http_client
 
+        # Retry individual HTTP requests, not the entire tool loop: replaying
+        # the loop could execute already-completed MCP calls a second time.
+        # A caller-supplied http_options value can override this policy.
+        client_kwargs = {
+            "http_options": types.HttpOptions(
+                retry_options=types.HttpRetryOptions(
+                    attempts=6,
+                    initial_delay=5,
+                    max_delay=60,
+                    jitter=1,
+                    http_status_codes=[429],
+                ),
+            ),
+            **self.client_kwargs,
+        }
         client = genai.Client(
             vertexai=True,
             project=self.project,
             location=self.location,
-            **self.client_kwargs,
+            **client_kwargs,
         )
 
         stream_parts: list[str] = []

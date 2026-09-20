@@ -31,6 +31,18 @@ available_node_types:
                 - --shm-size=10.24gb
                 - "-v /scratch/${USER}/projects/chia/tmp/verilator:/scratch/${USER}/projects/chia/tmp"
 
+    hello_riscv_build:
+        resources: {"riscv_build": 1}
+        num_workers: 1
+        compatible_ips: ["${THIS_MACHINE}"]
+        docker:
+            image: "ghcr.io/ucb-bar/chia-riscv-cross:latest"
+            container_name: "chia-riscv-build-${USER}"
+            pull_timeout: 7200
+            run_options:
+                - --ulimit nofile=65536:65536
+                - "-v /scratch/${USER}/projects/chia/tmp/riscv:/scratch/${USER}/projects/chia/tmp"
+
     hello_opencode:
         resources: {"opencode_creds": 1}
         worker_setup_commands: ["source ~/.bashrc"]
@@ -59,7 +71,7 @@ available_node_types:
 head_env_commands: ["source /scratch/sbanerjee76/utils/miniconda/etc/profile.d/conda.sh && conda activate chia_env"]
 head_setup_commands: 
     - "source /scratch/sbanerjee76/utils/miniconda/etc/profile.d/conda.sh && conda activate chia_env"
-    - "install -d -m 1777 /scratch/${USER}/projects/chia/tmp/{chipyard,verilator,opencode,vertex}"
+    - "install -d -m 1777 /scratch/${USER}/projects/chia/tmp/{chipyard,verilator,riscv,opencode,vertex}"
 head_start_ray_commands: 
     - "source /scratch/sbanerjee76/utils/miniconda/etc/profile.d/conda.sh && conda activate chia_env && ray stop"
     - "source /scratch/sbanerjee76/utils/miniconda/etc/profile.d/conda.sh && conda activate chia_env && \
