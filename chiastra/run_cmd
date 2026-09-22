@@ -33,7 +33,7 @@ export CHIASTRA_GEMINI_MODEL="gemini-3.5-flash-lite"
 export REPORT_PATH="$PWD/output/boom_cache_report.md"
 
 python -m pip install -e ../..
-chia up --add cluster.yaml
+chia up cluster.yaml
 
 chia job submit \
   --working-dir . \

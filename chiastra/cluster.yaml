@@ -7,7 +7,7 @@ auth:
 
 available_node_types:
     hello_chipyard:
-        resources: {"chipyard": 1}
+        resources: {"chipyard": 4}
         num_workers: 1
         compatible_ips: ["${THIS_MACHINE}"]
         worker_setup_commands: ["source /home/ray/chipyard/env.sh"]
@@ -20,7 +20,7 @@ available_node_types:
             pull_timeout: 7200 # default value for this is 600 seconds but chia-chisel-build is large
 
     hello_verilator:
-        resources: {"verilator_run": 1}
+        resources: {"verilator_run": 8}
         num_workers: 1
         compatible_ips: ["${THIS_MACHINE}"]
         docker:
@@ -32,7 +32,7 @@ available_node_types:
                 - "-v /scratch/${USER}/projects/chia/tmp/verilator:/scratch/${USER}/projects/chia/tmp"
 
     hello_riscv_build:
-        resources: {"riscv_build": 1}
+        resources: {"riscv_build": 4}
         num_workers: 1
         compatible_ips: ["${THIS_MACHINE}"]
         docker:

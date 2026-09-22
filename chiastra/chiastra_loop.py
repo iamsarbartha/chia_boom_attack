@@ -7,6 +7,8 @@ import fnmatch
 import json
 import os
 import re
+import time
+from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import Any
 
@@ -144,6 +146,98 @@ def _event_text(event: Any) -> str:
     return "".join(getattr(part, "text", "") or "" for part in parts)
 
 
+def _record_adk_event(
+    trajectory: dict[str, Any], event: Any, trace_path: Path
+) -> tuple[str, bool]:
+    """Persist the complete ADK event and any agent text before continuing."""
+    text = _event_text(event)
+    is_final = event.is_final_response()
+    trajectory["events"].append({
+        **event.model_dump(mode="json", exclude_none=True),
+        "is_final_response": is_final,
+    })
+    if text:
+        trajectory["responses"].append({
+            "author": event.author,
+            "event_id": event.id,
+            "is_final_response": is_final,
+            "text": text,
+        })
+
+    temporary_path = trace_path.with_suffix(".json.tmp")
+    temporary_path.write_text(
+        json.dumps(trajectory, indent=2), encoding="utf-8"
+    )
+    temporary_path.replace(trace_path)
+    return text, is_final
+
+
+def _adk_event_summary(event: Any) -> str:
+    parts = getattr(getattr(event, "content", None), "parts", None) or []
+    calls = [p.function_call.name for p in parts
+             if getattr(p, "function_call", None)]
+    responses = [p.function_response.name for p in parts
+                 if getattr(p, "function_response", None)]
+    return (
+        f"author={event.author} final={event.is_final_response()} "
+        f"finish_reason={event.finish_reason} calls={calls} "
+        f"responses={responses} text_length={len(_event_text(event))} "
+        f"error={event.error_code}: {event.error_message}"
+    )
+
+
+async def run_with_progress(
+    runner: Any, *, user_id: str, session_id: str, new_message: Any,
+    preview_chars: int = 800,
+) -> AsyncIterator[Any]:
+    """Print outer-runner events as they arrive, yielding each unchanged.
+
+    Nested AgentTool runners expose their calls/results here, not their internal
+    events. This reports event progress; it does not enable token streaming.
+    """
+    if preview_chars < 0:
+        raise ValueError("preview_chars must be nonnegative")
+    started = time.monotonic()
+    count = 0
+    print(f"[ADK] Starting session={session_id}", flush=True)
+    try:
+        async for event in runner.run_async(
+            user_id=user_id, session_id=session_id, new_message=new_message
+        ):
+            count += 1
+            prefix = f"[ADK #{count} +{time.monotonic() - started:.1f}s]"
+            print(f"{prefix} {_adk_event_summary(event)}", flush=True)
+            parts = getattr(getattr(event, "content", None), "parts", None) or []
+            for part in parts:
+                if getattr(part, "thought", False):
+                    continue
+                details = []
+                if call := getattr(part, "function_call", None):
+                    details.append((f"CALL {call.name}", call.args))
+                if response := getattr(part, "function_response", None):
+                    details.append((f"RESULT {response.name}", response.response))
+                if text := getattr(part, "text", None):
+                    details.append(("TEXT", text))
+                for label, value in details:
+                    if preview_chars:
+                        payload = value if isinstance(value, str) else json.dumps(
+                            value, ensure_ascii=False, default=str
+                        )
+                        preview = payload[:preview_chars]
+                        if len(payload) > preview_chars:
+                            preview += " … [truncated; full event in adk_trajectory.json]"
+                        print(f"{prefix} {label}: {preview}", flush=True)
+            yield event
+    except Exception as exc:
+        print(f"[ADK] Event stream failed: {type(exc).__name__}: {exc}", flush=True)
+        raise
+    else:
+        print(
+            f"[ADK] Event stream ended after {count} events "
+            f"in {time.monotonic() - started:.1f}s", flush=True,
+        )
+
+
 async def run_adk_agent(agent: Any, prompt: str, app_name: str) -> str:
     """Run one ADK agent in an isolated in-memory session."""
     try:
@@ -151,6 +245,15 @@ async def run_adk_agent(agent: Any, prompt: str, app_name: str) -> str:
         from google.adk.runners import InMemoryRunner
     except ImportError as exc:
         raise RuntimeError("Google ADK is required; reinstall the project") from exc
+
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    trace_path = OUTPUT_DIR / "adk_trajectory.json"
+    trajectory: dict[str, Any] = {
+        "app_name": app_name,
+        "events": [],
+        "responses": [],
+    }
+    trace_path.write_text(json.dumps(trajectory, indent=2), encoding="utf-8")
 
     runner = InMemoryRunner(app=App(name=app_name, root_agent=agent))
     session = await runner.session_service.create_session(
@@ -160,24 +263,13 @@ async def run_adk_agent(agent: Any, prompt: str, app_name: str) -> str:
     final_text = ""
     event_count = 0
     last_event = "none"
-    async for event in runner.run_async(
-        user_id="chiastra", session_id=session.id, new_message=message
+    async for event in run_with_progress(
+        runner, user_id="chiastra", session_id=session.id, new_message=message,
+        preview_chars=int(os.environ.get("CHIASTRA_ADK_PREVIEW_CHARS", "800")),
     ):
         event_count += 1
-        parts = getattr(getattr(event, "content", None), "parts", None) or []
-        calls = [p.function_call.name for p in parts
-                 if getattr(p, "function_call", None)]
-        responses = [p.function_response.name for p in parts
-                     if getattr(p, "function_response", None)]
-        text = _event_text(event)
-        is_final = event.is_final_response()
-        last_event = (
-            f"author={event.author} final={is_final} "
-            f"finish_reason={event.finish_reason} calls={calls} "
-            f"responses={responses} text_length={len(text)} "
-            f"error={event.error_code}: {event.error_message}"
-        )
-        print(f"[ADK] {last_event}", flush=True)
+        text, is_final = _record_adk_event(trajectory, event, trace_path)
+        last_event = _adk_event_summary(event)
         if text and event.author == agent.name and is_final:
             final_text = text
     if not final_text:
@@ -201,7 +293,7 @@ def _concise_record(record: dict[str, Any]) -> dict[str, Any]:
 def make_boom_execution_tool(
     simulator: BuildArtifact, execution_records: dict[str, dict[str, Any]]
 ):
-    """Expose a bounded C-to-BOOM experiment tool to the ADK subagents."""
+    """Expose single and batched C-to-BOOM tools to the ADK subagents."""
 
     def execute_boom_program(
         source_code: str, program_name: str, process_id: int = 0
@@ -262,7 +354,114 @@ def make_boom_execution_tool(
         execution_records[program_name] = record
         return _concise_record(record)
 
-    return execute_boom_program
+    def execute_boom_program_batch(
+        experiments: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        """Build and run independent experiments concurrently through Ray.
+
+        All builds are submitted before waiting; then all successful
+        simulations are submitted before waiting. Ray can therefore place
+        independent work on multiple custom-resource workers.
+        """
+        if not experiments:
+            return []
+        if len(experiments) > 32:
+            return [{"passed": False, "error": "at most 32 experiments per batch"}]
+
+        prepared: list[tuple[str, str, int]] = []
+        results: list[dict[str, Any] | None] = []
+        seen: set[str] = set()
+        for experiment in experiments:
+            source_code = experiment.get("source_code", "")
+            program_name = experiment.get("program_name", "")
+            process_id = experiment.get("process_id", 0)
+            valid = (
+                isinstance(source_code, str)
+                and bool(re.fullmatch(r"[A-Za-z0-9_]{1,48}", program_name))
+                and process_id in (0, 1, 2)
+                and bool(source_code)
+                and len(source_code) <= 100_000
+                and program_name not in seen
+                and program_name not in execution_records
+            )
+            if not valid:
+                results.append({
+                    "program_name": program_name,
+                    "passed": False,
+                    "error": "invalid, duplicate, or already executed experiment",
+                })
+                continue
+            seen.add(program_name)
+            prepared.append((source_code, program_name, process_id))
+            results.append(None)
+
+        build_nodes = [RiscvBuildNode(timeout_seconds=300) for _ in prepared]
+        build_refs = [
+            node.build.chia_remote(
+                node, source.encode(), name, RISCV_WORK_DIR,
+                target="verilator",
+                extra_cflags=("-O2" if process_id == 0
+                              else f"-O2 -DCHIASTRA_PROCESS_ID={process_id}"),
+                include_dump=True,
+            )
+            for node, (source, name, process_id) in zip(build_nodes, prepared)
+        ]
+        built_results = get(build_refs)
+
+        run_refs = []
+        runnable: list[tuple[int, int]] = []
+        build_index = 0
+        for result_index, result in enumerate(results):
+            if result is not None:
+                continue
+            built = built_results[build_index]
+            name = prepared[build_index][1]
+            if not built.success:
+                record = {
+                    "program_name": name,
+                    "process_id": prepared[build_index][2],
+                    "build_success": False,
+                    "build_returncode": built.returncode,
+                    "build_stderr_tail": built.stderr[-3000:],
+                    "objdump_tail": built.dump[-3000:],
+                    "passed": False,
+                    "reason": "RISC-V compilation failed",
+                }
+                execution_records[name] = record
+                results[result_index] = _concise_record(record)
+            else:
+                run_node = VerilatorRunNode()
+                run_refs.append(run_node.run.chia_remote(
+                    run_node, simulator, built.binary_content, built.binary_name,
+                    VERILATOR_WORK_DIR, plusargs={"+loadmem": built.binary_name},
+                    timeout_cycles=SIM_TIMEOUT_CYCLES,
+                    timeout_seconds=SIM_TIMEOUT_SECONDS, verbose=False,
+                ))
+                runnable.append((result_index, build_index))
+            build_index += 1
+
+        run_results = get(run_refs) if run_refs else []
+        for run_result, (result_index, built_index) in zip(run_results, runnable):
+            built = built_results[built_index]
+            name = prepared[built_index][1]
+            record = {
+                "program_name": name,
+                "process_id": prepared[built_index][2],
+                "build_success": True,
+                "build_returncode": built.returncode,
+                "build_stderr_tail": built.stderr[-3000:],
+                "objdump_tail": built.dump[-3000:],
+                "passed": run_result.success,
+                "simulation_returncode": run_result.returncode,
+                "simulation_log": run_result.log,
+                "simulation_out": run_result.out,
+            }
+            execution_records[name] = record
+            results[result_index] = _concise_record(record)
+
+        return [result for result in results if result is not None]
+
+    return execute_boom_program, execute_boom_program_batch
 
 
 
@@ -331,13 +530,16 @@ def main() -> None:
         raise RuntimeError("google_agent.py and google-adk are required") from exc
 
     execution_records: dict[str, dict[str, Any]] = {}
-    execution_tool = make_boom_execution_tool(artifact, execution_records)
+    execution_tool, execution_batch_tool = make_boom_execution_tool(
+        artifact, execution_records
+    )
     for agent in (
         agent_infra.vulnerability_generator,
         agent_infra.validator,
         agent_infra.root_agent,
     ):
         agent.tools.append(execution_tool)
+        agent.tools.append(execution_batch_tool)
 
     exploration_prompt = f"""\
 	Run the complete BOOM cache-vulnerability exploration workflow against the
@@ -346,7 +548,9 @@ def main() -> None:
 	success criteria as the experiment specification. Then delegate source
 	generation to vulnerability_generator. The validator must compile every
 	generator-produced C/assembly experiment with the RISC-V build tool and run
-	the resulting binary in the BOOM Verilator simulator through execute_boom_program.
+	the resulting binaries in the BOOM Verilator simulator through
+	execute_boom_program_batch when trials are independent; use
+	execute_boom_program for a single trial or a trial that depends on prior output.
 	Feed validator compiler/simulation evidence back to the generator for bounded
 	revisions. Treat the cache report as hardware evidence, not as a vulnerability
 	finding. Preserve attempts, distinguish build failures from falsification,
