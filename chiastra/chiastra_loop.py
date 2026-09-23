@@ -492,34 +492,34 @@ def main() -> None:
         "verilator_source", str(source_dir),
         task_options={"resources": {"chipyard": 0.01}},
     )
-    try:
-        llm = VertexGeminiLLM(
-            model=GEMINI_MODEL, project=project,
-            location=os.environ["GOOGLE_CLOUD_LOCATION"],
-            system_message=(
-                "You are a senior CPU microarchitect. Be evidence-driven and "
-                "explicit about uncertainty when interpreting generated RTL."),
-            timeout_seconds=int(os.environ.get("CHIASTRA_LLM_TIMEOUT", "1200")),
-            max_tokens=int(os.environ.get("CHIASTRA_MAX_TOKENS", "16000")),
-            # Plain dicts serialize safely from the Ray driver to the worker.
-            client_kwargs={"http_options": {"retry_options": {
-                "attempts": 6,
-                "initial_delay": 5,
-                "max_delay": 60,
-                "jitter": 1,
-                "http_status_codes": [429],
-            }}},
-        )
-        response: QueryResult = get(
-            llm.prompt.chia_remote(llm, REPORT_PROMPT, tools=[source_tool]))
-        if not response.success:
-            raise RuntimeError(
-                f"Gemini did not produce a report (return code {response.returncode})")
-        REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
-        REPORT_PATH.write_text(response.result, encoding="utf-8")
-        print(f"Cache architecture report written to {REPORT_PATH.resolve()}")
-    finally:
-        source_tool.stop()
+ #   try:
+ #       llm = VertexGeminiLLM(
+ #           model=GEMINI_MODEL, project=project,
+ #           location=os.environ["GOOGLE_CLOUD_LOCATION"],
+ #           system_message=(
+ #               "You are a senior CPU microarchitect. Be evidence-driven and "
+ #               "explicit about uncertainty when interpreting generated RTL."),
+ #           timeout_seconds=int(os.environ.get("CHIASTRA_LLM_TIMEOUT", "1200")),
+ #           max_tokens=int(os.environ.get("CHIASTRA_MAX_TOKENS", "16000")),
+ #           # Plain dicts serialize safely from the Ray driver to the worker.
+ #           client_kwargs={"http_options": {"retry_options": {
+ #               "attempts": 6,
+ #               "initial_delay": 5,
+ #               "max_delay": 60,
+ #               "jitter": 1,
+ #               "http_status_codes": [429],
+ #           }}},
+ #       )
+ #       response: QueryResult = get(
+ #           llm.prompt.chia_remote(llm, REPORT_PROMPT, tools=[source_tool]))
+ #       if not response.success:
+ #           raise RuntimeError(
+ #               f"Gemini did not produce a report (return code {response.returncode})")
+ #       REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
+ #       REPORT_PATH.write_text(response.result, encoding="utf-8")
+ #       print(f"Cache architecture report written to {REPORT_PATH.resolve()}")
+ #   finally:
+ #       source_tool.stop()
 
 
     # Connect the research, generator, and validator subagents to the built
@@ -541,6 +541,7 @@ def main() -> None:
         agent.tools.append(execution_tool)
         agent.tools.append(execution_batch_tool)
 
+    cache_report = REPORT_PATH.read_text(encoding="utf-8")
     exploration_prompt = f"""\
 	Run the complete BOOM cache-vulnerability exploration workflow against the
 	already-built {BOOM_CONFIG} Verilator target. First delegate the cache report
@@ -557,7 +558,7 @@ def main() -> None:
 	and finish with the required status and limitations.
 
 Cache report:
-{response.result}
+{cache_report}
 """
     print("Running the Google ADK BOOM exploration coordinator...")
     exploration_text = asyncio.run(run_adk_agent(
