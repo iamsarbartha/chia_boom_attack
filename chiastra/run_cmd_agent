@@ -1,0 +1,49 @@
+# --- Compile the source files --- #
+python -m pip install -e ../..
+
+# ----- [Optional] These commands bypass the tedious job of adding passwords at every container --- #
+ssh-copy-id "$USER@$THIS_MACHINE"
+ssh -o BatchMode=yes "$USER@$THIS_MACHINE" true
+
+# --- Bring up the cluster ---#
+chia up cluster.yaml
+
+# --- Copy the updated vertex file to get rid of error 429 in the docker container  --- #
+# --- Please change the user from sbanerjee76 to your username in the following command --- #
+docker cp ../../chia/models/vertex.py \
+chia-vertex-sbanerjee76-0:/home/ray/anaconda3/lib/python3.10/site-packages/chia/models/vertex.py
+
+# --- Test the following --- #
+# --- Please change the user from sbanerjee76 to your username in the following command --- #
+docker exec chia-vertex-sbanerjee76-0 \
+  /home/ray/anaconda3/bin/python -c \
+  'import chia.models.vertex as v, inspect; src=inspect.getsource(v); print("429 retry:", "http_status_codes=[429]" in src); print("TaskGroup unwrap:", "_unwrap_exception_group" in src)'
+
+# --- Response --- #
+# 429 retry: True
+#TaskGroup unwrap: True
+
+# --- Update the docker containers with the required packages ---
+# --- Please change the user from sbanerjee76 to your username in the following command --- #
+for c in chia-chipyard-sbanerjee76-0 chia-vertex-sbanerjee76-0 \
+         chia-opencode-sbanerjee76-0 \
+         chia-riscv-build-sbanerjee76-0 \
+         chia-riscv-build-sbanerjee76-1 \
+         chia-verilator-sbanerjee76-0 \
+         chia-verilator-sbanerjee76-1; do
+  docker exec --user root "$c" /home/ray/anaconda3/bin/python -m pip install \
+    'pydantic==2.13.5' 'fastapi==0.141.1'
+done
+
+# --- Final step: Submit the job to the cluster --- #
+chia job submit \
+  --working-dir . \
+  --runtime-env-json "{\"env_vars\": {
+    \"GOOGLE_CLOUD_PROJECT\": \"$GOOGLE_CLOUD_PROJECT\",
+    \"GOOGLE_CLOUD_LOCATION\": \"$GOOGLE_CLOUD_LOCATION\",
+    \"GOOGLE_GENAI_USE_ENTERPRISE\": \"TRUE\",
+    \"CHIASTRA_GEMINI_MODEL\": \"$CHIASTRA_GEMINI_MODEL\",
+    \"CHIASTRA_REPORT\": \"$REPORT_PATH\",
+    \"CHIASTRA_OUTPUT_DIR\": \"$PWD/output_$(date -u +%Y-%m-%d_%H-%M-%S)\"
+  }}" \
+  -- python chiastra_loop.py
