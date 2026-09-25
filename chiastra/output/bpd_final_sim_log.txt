@@ -1,0 +1,20 @@
+=== test_ultimate_btb_align16 ===
+Source: output_bpd_35/exploration_runs.json (BOOM branch-predictor exploration job)
+build_success: True
+passed: True
+simulation_returncode: 0
+reason: None
+
+--- simulation_log ---
+--- Align-16 BTB Eviction Raw Counts ---
+Trained:
+ 27 26 26 25 25 25 26 25 25 25
+uBTB Evicted:
+ 31 26 26 40 25 25 25 25 25 25
+Full Evicted (Main BTB + uBTB):
+ 35 50 64 36 26 66 26 26 51 48
+[UART] UART0 is here (stdin/stdout).
+- /home/ray/chipyard/sims/verilator/generated-src/chipyard.harness.TestHarness.MegaBoomV3Config/gen-collateral/TestDriver.v:179: Verilog $finish
+
+--- simulation_out ---
+(empty)

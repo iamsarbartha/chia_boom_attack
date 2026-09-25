@@ -1,0 +1,24 @@
+=== tlb_prime_probe_mitigated ===
+Source: output_tlb_35/exploration_runs.json (BOOM TLB exploration job)
+build_success: True
+passed: True
+simulation_returncode: 0
+reason: None
+
+--- simulation_log ---
+Warmup: Touching and validating all target pages...
+Starting 50 mitigated measurement trials...
+
+=== MITIGATED EXPERIMENT RESULTS ===
+Attack Scenario (Scenario 1 vs Scenario 2 with sfence.vma mitigation):
+  S1 (No Intr, L2 Hit) - Min: 91, Max: 111, Avg: 94 cycles
+  S2 (Intr, L2 Miss)   - Min: 90, Max: 148, Avg: 103 cycles
+
+Analysis:
+  Mitigated Attack Scenario Ratio (S2/S1): 1.09
+  [PASS] Mitigation successful! Timing difference eliminated (S2/S1 ~= 1.0) and both force a full page walk (>60 cycles).
+[UART] UART0 is here (stdin/stdout).
+- /home/ray/chipyard/sims/verilator/generated-src/chipyard.harness.TestHarness.MegaBoomV3Config/gen-collateral/TestDriver.v:179: Verilog $finish
+
+--- simulation_out ---
+(empty)
