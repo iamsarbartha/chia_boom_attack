@@ -1,0 +1,1030 @@
+{
+  "app_name": "chiastra_boom_vulnerability_exploration",
+  "events": [
+    {
+      "model_version": "gemini-2.5-flash",
+      "content": {
+        "parts": [
+          {
+            "function_call": {
+              "id": "adk-c67ecb06-ecd3-46c7-9ed3-8bc2926619e3",
+              "args": {
+                "agent_name": "explorer"
+              },
+              "name": "transfer_to_agent"
+            },
+            "thought_signature": "AY89a18RFO9HbTXEhS8VVwJ81-PVBj3LA2_dG4vcQL45BIgdKigY45daZV4naS3Vj4bfqmM3Dnw2ZBdr4fSgUU1OU_ftmSSVz82bgc7J7_V5Y6ZKUOjVNqv9CU4gm6lsb1YfgxhlSUoIoZwTeCmuM7_7VlD65K5a1iJ-zqfVA37AZMpIYGCliIkabkZ_YuszCQ65Zqaa24LM1I8WKYQjNUH2ASuR3y_ldXvdWC7xyMPjZVDLoiv-xZtc93aF3bPGQYacsDK-T4oTjIrg3cEDiUoxD0Rjsi-2RF8m0622BV2Z0SMRTeodfUpl2q8rhqjH3f8V3YLoYzXDW1M_EFtmpw4yBaqQGQGxYOOtxgP55-lYfSIAB0WWjFsTIj52G0cqHEPw_B9njd0HtJu7fmWKsPw0lG88bS__zeP_Or_ajqStqQwaQL3skcE9fZK839Q91Fm1hgWL4JgXEWLWqL1PPOVNmfs2coDDJ7oQzmvE4TgfXxEMAqHX0EfnZqMr5MgO1CjNB4x3tVaa757kFKYsQXBN2SPRzICqbJTweruiibFHsPuzuBNRdKVQDCk4qG4FN9_Lsx6KXZrQHi9UT2-1WuT5E3Zti7DmyQkaCkrvmhdNxCutKGM76W3-7e99BDmDWoCsgvvoLu1nyGEcuBGz2N0q4hBHLb_HxXNBRPF709vj2OegB-HITZO_VflNte8u7YPrOHH-L5aPxSGCQE5RY7AQJ1jV29BVnkYU7j1sL9jqmk4U6gnDonnYbVcbtXrW3YinwGUqxMXnB15zRPwGj8ZSFsz7otKL3xtvlt07kyfU_QyJBKcNm54k9zvKzUwvOfO5mO1xbH7eHvZYTIKQaiPTii61EVL4UxROSKGXxS8Q"
+          }
+        ],
+        "role": "model"
+      },
+      "finish_reason": "STOP",
+      "usage_metadata": {
+        "candidates_token_count": 16,
+        "candidates_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 16
+          }
+        ],
+        "prompt_token_count": 10787,
+        "prompt_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 10787
+          }
+        ],
+        "thoughts_token_count": 130,
+        "total_token_count": 10933,
+        "traffic_type": "ON_DEMAND"
+      },
+      "invocation_id": "e-611b1a67-a552-4224-86c3-a0114b0a0bc7",
+      "author": "Boom_vulnerability_agent",
+      "actions": {
+        "state_delta": {},
+        "artifact_delta": {},
+        "requested_auth_configs": {},
+        "requested_tool_confirmations": {}
+      },
+      "node_info": {
+        "path": "Boom_vulnerability_agent@1"
+      },
+      "long_running_tool_ids": [],
+      "id": "e5a456e4-db37-4ddd-ad82-fc4c74c31220",
+      "timestamp": 1793114806.3238845,
+      "is_final_response": false
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "function_response": {
+              "id": "adk-c67ecb06-ecd3-46c7-9ed3-8bc2926619e3",
+              "name": "transfer_to_agent",
+              "response": {
+                "result": null
+              }
+            }
+          }
+        ],
+        "role": "user"
+      },
+      "invocation_id": "e-611b1a67-a552-4224-86c3-a0114b0a0bc7",
+      "author": "Boom_vulnerability_agent",
+      "actions": {
+        "state_delta": {},
+        "artifact_delta": {},
+        "transfer_to_agent": "explorer",
+        "requested_auth_configs": {},
+        "requested_tool_confirmations": {}
+      },
+      "node_info": {
+        "path": "Boom_vulnerability_agent@1"
+      },
+      "id": "9b02b538-cddf-47df-ac46-b8f1fef7b078",
+      "timestamp": 1793114807.7892292,
+      "is_final_response": false
+    },
+    {
+      "model_version": "gemini-2.5-pro",
+      "content": {
+        "parts": [
+          {
+            "text": "## EXPLORER ATTACK SURFACE REPORT\n\n### PRIORITY 1 (highest novelty / sharing risk)\n**Loop Predictor**: A small, specialized predictor that is a prime candidate for a novel contention-based attack due to its small size and stateful, multi-counter design, which is not covered in the provided prior art.\n  - Key parameters: `LoopNEntries`: 16, `age_counter`: 3 bits, `conf_counter`: 3 bits, `iterations`: 12 bits\n  - Sharing risk: The predictor is core-local but its state is not flushed on context switch, allowing cross-ASID and cross-privilege-level interference.\n  - Observable effect: An attacker could poison the 16 entries with their own loop patterns, causing mispredictions and measurable timing delays when a victim process attempts to execute its own loops.\n  - Suggested angle: An attacker process trains the loop predictor with specific loop structures to evict or corrupt the victim's loop entries, then times the victim's execution to detect misprediction-induced stalls.\n\n**I-Cache MSHR Bottleneck**: The extreme asymmetry between the single I-Cache MSHR and the eight D-Cache MSHRs creates a unique, implementation-specific resource contention channel.\n  - Key parameters: I-Cache `nMSHRs`: 1, D-Cache `nMSHRs`: 8\n  - Sharing risk: This is a core-local resource, but contention is shared by all processes and privilege levels running on that core. A user-level process can create a bottleneck that affects the kernel.\n  - Observable effect: An attacker can induce frequent I-Cache misses, monopolizing the single MSHR. This stalls the entire frontend, and the resulting delay would be observable by timing any victim process activity.\n  - Suggested angle: Investigate if an attacker can fill the I-Cache MSHR to stall instruction fetch for a victim, amplifying the timing signature of other events like victim D-Cache or TLB misses.\n\n**Tournament Chooser Table**: The meta-predictor that selects between TAGE, BIM, etc., is itself a shared table that can be attacked through aliasing.\n  - Key parameters: `ChooserNSets` (derived): 11 (2048 entries), `ChooserCntSz`: 2 bits\n  - Sharing risk: Like other BPU components, it is shared across ASID/privilege boundaries due to not being flushed on context switch.\n  - Observable effect: An attacker could poison the chooser table entries to force the processor to select a suboptimal predictor for a victim's branches, leading to a higher misprediction rate and observable timing delays.\n  - Suggested angle: Create branch patterns that cause specific chooser entries to become saturated, then measure execution time of a victim whose branches map to those same chooser entries.\n\n### PRIORITY 2\n**Compressed BTB (CBTB)**: This structure is much larger than the main BTB, and its interaction and aliasing properties are distinct from the already-studied main BTB.\n  - Key parameters: `nCBTBEntries`: 256, `nBTBEntries`: 32\n  - Sharing risk: Shared across ASID and privilege boundaries.\n  - Observable effect: Attacker-controlled aliasing in the 256-entry CBTB could evict a victim's branch targets, forcing a misprediction or a slower lookup from another structure.\n  - Suggested angle: Characterize the conditions under which an entry is allocated into the CBTB vs. the main BTB, and devise an eviction strategy based on CBTB indexing to cause victim mispredictions.\n\n**I-TLB / D-TLB**: These are extremely small (16 entries), making them highly susceptible to classic cross-ASID contention attacks.\n  - Key parameters: `ITLB_SIZE`: 16, `DTLB_SIZE`: 16, `ASID_WIDTH`: 9\n  - Sharing risk: Entries for different ASIDs can coexist but will evict each other in this small, fully-associative or low-associativity structure, creating direct cross-domain contention.\n  - Observable effect: An attacker can fill the TLB with translations for their own ASID, evicting a victim's translations and causing a slow page-table walk for the victim that is easily measured.\n  - Suggested angle: Re-evaluate a simple cross-ASID TLB eviction attack (a-la classic TLBleed), which was not explicitly listed as \"blocked\" for the I-TLB or D-TLB in the prior art.\n\n### PRIORITY 3 (lowest priority / most thoroughly studied in prior literature)\n**L1 Data Cache**: A classic Prime+Probe or Flush+Reload target whose behavior is well-understood but remains a valid attack surface.\n  - Key parameters: `nSets`: 64, `nWays`: 8, `Replacement Policy`: LRU\n  - Sharing risk: Shared across all ASIDs and privilege levels on the core, leading to direct eviction-based channels.\n  - Observable effect: Attacker measures timing difference between accessing a cache set they previously filled versus one that a victim has since accessed, revealing the victim's memory access patterns.\n  - Suggested angle: Use as a baseline for comparison or as the observation mechanism for a more novel, cross-structure attack.\n\n### CROSS-STRUCTURE INTERACTIONS\n- **I-Cache MSHR -> PTW -> D-Cache**: A high-novelty chain. An I-Cache miss that also misses the I-TLB will occupy the single I-Cache MSHR, triggering a Page Table Walk, which in turn generates load traffic in the D-Cache to fetch PTEs. An attacker could potentially observe D-Cache contention that reveals a victim's instruction-side page faults.\n- **Loop Predictor -> Chooser Table**: Manipulating the Loop Predictor's accuracy for a given branch could influence the state of the corresponding Chooser entry, potentially degrading the prediction accuracy for unrelated victim branches that alias to the same Chooser entry.\n- **uBTB / BTB / CBTB Hierarchy**: A miss in the small uBTB (8 entries) may be served by the main BTB (32 entries), and a miss there may access the CBTB (256 entries). The timing difference between a hit at these different levels, combined with their different indexing and aliasing rules, could leak information.\n\n### RECOMMENDED STARTING POINT\n**Loop Predictor**: This is the best entry point because it is a highly specialized, non-standard component with a very small number of entries (16), making it easy to reason about and create contention. Its novelty is high as it is not mentioned in the provided list of previously studied mechanisms.",
+            "thought_signature": "AY89a1-UA-fnBRbrKqlKAb9w2_VNEN-rircCVw5JPOJ_mO90JGPWV3uvcrLOg-SeETAO7__v8HwLs2L5Tg0N4OAkRBXk_MyvZtXoVLeutGgYNsiFOU_AFhWYc491QHrU6ed_7OOodLvMm9-88CXCHSctiE9j52WgirQhA-cWigTNnLDQpV8fSb4IiNPbk7iJfU44tt0OiUvnmzOy7l4hjqwfp99-YF2gRIjE-iPSn392vu_B6JGSdjYsrCEj2sC-0jF0VW0jegQq9Zdk8busYo79Qh6SAQaC8U0BZI74tkqZpGBlDOKwzmnQaKeTBbIpXY88n1rVfD7QTS6bDu3t53XaMROMKdefm4ygNEAS4gBozVlwXLliN5L8bN2L3i5T2Go1IoZRtj4bFnLBzi43-vs1glb9o-HDR0-7mHBiveKq91cJQZ6D8q0JQ6mG_0Exk3JhhGkjrT0cBQqxu-hff7pFNcc4-P4duEZcdSEwOBtGsu9JZEbdeiZ6PedDY6iHlpRW58aeKEmhfj7g-LnNPEkNjCbzblLRUsdM_wJTNb5cmfjNeQfc2RhLv-nEQ1Otu65LhCMyWlwXNiZv9Ko2MbA2tj7kElFSxSv0Zds39zu5DeDORk6c7lZZLWnH35rKv_UFvP-LNmUbJvZ1zSLUq4RPJbmE_w6sNsOl_LvKuymOwfOOs7gQ_IZjvi_LAHidim94GvPozRwm-1nfbgYq5q_zovJWrDQXoB9CPoz0F3Sip3wnuDWcscsxtixInaYFtcZhLzqmYOx7j0K0kwG1XXwUYA2Y6k_J4-sm7A7Gg2npW6vafEVQLbSqJyyA8SdXZbbnNncxzMbPEDCKjgYDxzGlPy50B1OAXU7syzzdqsP7RKJyRXa3ecN5JBhLeUhoH6L1xOUQ3_OGFVT1wcX5p7z3YICeRfEVexFUiUVC-B_d4INgGTDEsW6ApJfZmZscKRM_IFWSbYZCVuikMaiiPkFUTd-lJglyVJ-iCexIjQNUNA251hRVxQ_07VDUNK1rSgxHMQ8L0fW1FcB7WmmxmnFSOUE8Y-1bZvxbMWUGT86ePTTvS-xL-21Pz9ta-RCI371nGhZGcBo9OkN3emqn4p1LE9zGWYSbbWgJP5MF9CXOUYdDw6oxFez-fPGI1M2xqiB36GuAXczNtKGEv_EW1TEb9B9UFZGNtIi_0YLTo7g-Y0_bPnv2BUxoYzQk3hKfqeZx1-YgGywDS_vz1W5cnuKEaqqVqcYNga0E8zqCoscsBROPJK8QHU7lO5S0TtNRi8MfuI74_Xh0Jpkzsq7vWKvsHee3BWqiLBA23drD5NUrD_55QLB3TUn--BNfzjFYY0loM0zftHcc8bD7cGkwkB56XM-g-62f-gHEw98Q9sX9ZeUu499Ou2jLXQQ2U9CmOnC5Tl8E_3jt4zmGC55KwIGAgEs0dj4nef7HlN9Ynyk_nZWiXXdy6lvP_QLkJVa5kahknY7POFOuYuwlELFBGdH-vWBNvLmiNW0kslq7r9Om7oONrsTYhbWQpnKKFdKN_DYVK6nHIPjRtheAZ1WEkOJPM6Ln3TqHC14ZTgBU0LZinQ_mZckgkzttF_WXhTS8wGKrntwuNcHqavs-rj5dxwuTKIV-yZ9eRQ2FFyJ16moIn5J8i8JxmDxLh_Fi1VQSRq-Y6E2tNHk9qWOSVPG0NYpICK58BHOHaU1XRluV5gOihg9GSdme6Hmts44KcGWm-OA267fNoG-CTobLo-zm2uNZloUW9zDQZ9uIQ02RN9I1unQj1xHBa69QIGC6SauoP5XGIKCgVcKXKRm8WYqrkfveaCcntmhnW5KFL58b0ba-gGCgMGqOoq74WBlCKnV6fHUWX9Y7Kzt_K32HkRBez1oA4kYrhAqzQaulA4KX2sAHXuCi7meQ9URykCSpQQw4gk4az3Nfgb_adkqq4NCVfDGiSI5OJcosqm_ggXWT7-KXPa--iPygxZyvvw6JpmUbtBvQ2vE22Ik5z62K_Xjd9hVozYYo6kft1Ypjl-8Pjvd2rk1LndI4-jeHBPXWNiY25yRTJq4AWPSVqyLgzdAOfmHM3rBZYWBKFRlE3eLb2PGzb6XGTARdW7WKVorOh4KkKjPehGHmbdBwyFfNO5DkWd9cXDUDIImC6HFQqV2Di74gE1SpiQMHYOtN6nkToHO2a17SwRNlRJEEXt5pNM9LvtwFUjY_glmZngbtAU1v9S5r9M6cjQv2Gp57gYSNxf50BgCubez0NMWIO9hAUws9zYUfdMCOjRsTRb3AvQBmpksim0fbaUqoYXKJMnvXPtPp3xadJw2tbPmtc2k-2yExdpHXLCRxm6Z6tOYCRxihS77x9dK8vFga5YhOeN7gaUEkQsacbxBu3IMpxl0yS_uvWCxx3nPOegxdF0r3mPf_RYCfHkg4VxDbm2IFI_tTsNC8hQdHvUiAr0A51fJATvXLshC6ZnTAGEluZV5h59lCUp705mUWo8flk0XrWVtRhE941KqzOEeufNsfnUFEF5zLxA0ZFLwtQaghzNmLwgjLVfMAmUFuoUdRO30WEq8zisvk3HUrzIlOJtiX4N1DeMwUrUjhQrTE55RUAnkaJGVsJHnczK4Q4i5IZF3e1svgI-WiSwbFGt650V7RI9SMKwv5whUMJpwjT6tXLYtSDz3FGK172PpkKf3iW6C3iBLgA4JuaH-UGQ-bX7SF8gUZQ_vnLeVP0VcKuXcKVv34d2ITUU1vv6yUHLA2jqHr40QZG5ubqLoz0VkFpxY8_V3ypMj4Hx7jIn38fXRRTn4s6IaesLrCep5QV78ApPSW5P-3D63Tusv5Rizp6zBuQ-Qqxvq6-Y_H16N3sADb5D7yCXThjqei2AvfhqO4-nbTZVYO2Qo1vl9OAdD9ED0Lc8ItJqlGoP_37TtdUastqxpARbOcGJuPt3-0iAhqhznTWS-dbKjclAugeEwX1NdITOIF6jY_WHOQNKzB9XdZo322-2I0CdhGIH-1NhNQTDV5xke_ZWFmymkYTbm8RDzt80NWCz2RRydtFbE3KQz7c4F2jsGHFUzaDq2CqF7URqpAqiDMqfhnEVL2xCLMj3cv3kOAvQvQ8YPmIxa2PQgG7s8bqnti_MUJnU_UzQ33igoMK1Ha-o_X5PZ9_l9pAJeVNAOqjfY7a00yXJPhLDpChCzqRHAiWUFjkbigyoS0hZjKeozyfRDgT1mgSZiSxjR_1_TM8FM3LFN7TPHuYkash9j-SpkDXJSny4npHKn1vy4yPyxNODa1nLcrV2TnLAyO1_kbrrrLm7Z3Ky_rr55ersr6OVy5AJDxvtYTjxxBC7kRluDdqMPZaPJmawRqgQsgpKURzVNWeTQB4GilpHbiDUFvHvbCAMKrazpz8D2mK6-WNfTcl3hj-3iWnIA6nC--rxep1T1ePBAC8RCkJW8z7n5mtdNOYLqMPt26KI0Wx6ZsHJv0RWv7n81MgBfHmmtXopNE4XayRUF8h9tMkVeYUjV1f_gZgNhDuC4kBatbh0-1eMnkejjn-WQW7QsKdQW3AVaXt0wTQU68DuYTTxXN5WWfrjS53TM9HTnnULabzdKTMQLmkpRqvi83Xq6n2UCqF8EBDYoWhaZSwftJUEXnQDJBLgKcItvzWt6RbPIwJOR2Kz41NCG3ZG-zlRGd7uL7lGvFMd9VASyYqxwudaKoeeCGvLcCo8fcdxrYjVf-21b58n2924wivR0qxhIbhEDr_PfGno0-PUZFYNEVxzon-m-4cDPwVl91Q7brQSfiVWuXIzWB2YBTk9aj73sJ50VSQfWz8TvPzJU0FvF_Rc7YoQt_Kyp6-LnTK89eAS9yrfFLeMvfqz3qlnhCDYh4dGPTm9jVgNddnbSJjhCRRAZyN33fr7qoP1ghYS2jcMFZhDJWKSQCaztBylCVpbtMwb48X8KBH4l7dKa0HX4dacfEZJkKE2eBWkYNS3Xo1IXnQcyBE--rstdoTjULBpw9qvB9mr7QxgVRLKaEAd34mK_FCVhlU6v0I7GrxaZAcBtc1HmD8ubHoZ7txNkHtFZdC-RWBGbGIgb-Db3-TLgCLEdaCnjJKFTftmIaL--lZCMvyZ1_fgH5pceNHwzPpocoyhgJE86QJXOfEo9hW8jySKz0H36u_1gbbY1wHFWl2g-W8b2mgWx0VikcHyhgR-vGujr-f1gC8tOxQUcWUFG9EbhfuVdoB0Yg1aIZKKRzEPHuxoEabeCwseN8dR2ncqNxBALU8LdNVmSNR6uvDsxoRJ7BZZJ7sxzyHBc2XXv0Rh_miFzsPv5-odtHcmSekVQbMZRO1VxzICd4FtQgFowle3HltmUCJKb0xApkXNegSQMYX_EVzd9DCD18-MYiKwFUzPlqniT12SV7cssYf_eGL6QfRdIs45Bs8Sc5_UZZsXmgXO1r_AEDHH-kurgd7y3T6Nq03-TVhfD53JIPyVwzz0mQOYT9pxHhZBHjcx9oOmRq6lZ4TtmHrdCleu-veVllU2hvLt9nlbRa1dnXMa0cUYgOf_CbmwYkAo9VGd0uxrE5PeB_GdZs0EwvCNkAQXypMiftzwPqOoOluGal3MxAdRB4uJHt_U3POOqhfbUPjixOMN2yq4Daj3HjBIf0k3_w6dC6YVmJZstKyIlRqpAak5Edbb6Ld6yVKVTzAVacrgvor2MD_Yqk0i5cgmwuf9VzTD9bwwICXn1AiE0IWX3IUeq_ajt2ZcRCg0IZGlNPsSYd40afMm6V1Bs9exKKcYh702vCZH1wm1SdtuDldLWHR76rzrjNMWTuauEZpdDxZefOFjHJizVQmLdpmLBBJfE3rL-p_N3P5TfFthP2O7Uo7_isw5PJm-82ddMLQZKlfddwfWcacJdQtLbw6DVCZoS8hdJuA7Kw48oS86XArnr2F23t8YaXx0sLYw9wjznXNb4eE8q2ZKs3cSQLftvOqnng2nkpVCOFnVTXCOn5pdkTYL4IiYydMF3pRdBTtEylwaPSDUtqC7DPAgyNysM7AZHft3YUQu-UvPgyGF_XeqFq0GS5jop3Gddek2fvUyvSB-fmTPgPLXn5BI79qyQ3mmeCFtDGMTMjs3znJt5yKr3pn__BKWvQ4F5tv8H0fW07D1Tn-82QwJKmsrLJD0TU2FhdFzgBs3ainhMYGcRcYcib8kUE_WUY68WN4sCy8rKz163WzeOpgh2K1eRx9XNfVmu1PIXEYB32CEmmrMGmJu800MEJK1qMrvaMalrp3tfZLHN0WKRcDqLbDu_C7IuYEXlrABoQ3rGrGNbl_259JBLJNcgol0b3Uaj2uQLbreCkafhqKuKcnlZPoYiDXUCUYB-tZgWESL8J2xggNZzRLw-7Eq1LmMTmRFuGQPJ6kILUmYCk-D-AN6m-7Rp-OjhT3p8zF5VK2Pb1s6ESASIlD3GJ3RTriEV6Oe-fPLrjC4oKq7dnEYKxiKz5-svhbkeigT1X3WF1nCtsnyZlZielGOsu9IelCvczaMMdjS_VnQQiOLe-CO5yyCLVqSmuuQmyepoXjP9ZznY1z5q1mPLkrvk_LwizLei0FPmXKsR4Dz7Pq_KPxVhUPri3STvPhAuOuhX2jv6094YcKxW3a0epAbPWQT95l-cEp0yigzmTSwnqR-hWxYAbic00Qi-Bq3JvTr6dLcIa8PHL4SF7IWEsXEXsYycjuXQWQwkONsJdOEVTdJQ0u6GithHfr3GusHvYMZ5GqyY1nLV_xOBu-53QONank3yRfYLUoN4kMdWxNJuVfiBkdckI9jUYsfdd9VJG755-iDEfKJb1QyZTCrheYJydASLo2pMXzDWWA_YQ8MzXUm38II4gnPwfjZbKbJti-Su1yIajMoZcfNWUhLt32_lCzpctJS8QFHDdxvLbpdpg1oC6EJpsOrAP2kZaZwksvNoIxUGng-06400U-UOxY_3sLCF8MSX11tydKjKzDL7_1p1iXLPzTh-b1IgvkkHlEMlByoEZ2rlco1jnz50Hsfda6JVnuCdggui08qNG7foy4V0Kp7l2MR_rUpX7nFKkBzJfNlCQtJ4-HA4gj4IE-eqXTlk9sCcmao95YRLbLyXt2bC2VLoOs7rsSMLFOygtyPveR2akQsPqV2iRNmGZycdzaBrk3UigGn2CXY29Z7XvkQmKwn0fwF-C9Xh46TWX7SZGrwOGgWPZYRIDqrKtxlbg6ozRvGN6awVq1FI541eHneFy7qqXI_cd7mpBvzWV_3mO7leq2Vk1PFv9X3tOPiBi5XFJ0VfFqXQOKzeMSCKwSXM7lvJ_KxRlnH4KBnBAbN3QuT32t9WF6W_B5GKiD16cQJJzeab09GqPZ5ZGQFhlBu4yTGkrMTczlXpkmAAUYq8tXIbaXU8FrS49YdcZmgXJ_oFb_6NHD6yYO5kQARKhZh7taC-LUYC2ZB2bRt0A8A7pwRjbPZfYxRonaxT1Z4STBvCUG3zcLlbduqJpAsFUoMsx_qocCdMDBkcuP0bs-34KzvSG9YtPzCKsUwa766xpcg_aVVE5pofJLTo8sF2ssFmc50nK-Y-qyw3EIQAnNVgn7B98OKjnHXLmRWGHlCYdpDK2JJz0llalPSQT7sqUu9zoRaqb7L-X--ce1TUMzamZNhU1c7xxePYN55QQlFdHqXr8CERUwjEhCBv6JglLmDLgWrl0NLVrBNJ3ICu7_NLUjGGmsHEu8BoDX7B-M33wXoSYmeI--6F5CYrEAVvAiJx4-qcu1biOBr9rAUEHLb1Jb6ahBAmOfX70Qju5B3ZD4PEJjpFYGn4Q-RE6X4mIm0awJKyFfLUmTQULhicUKOklN8sf2bAr-gbfu_sSck_u7uvsJwuKfS_C8a6hPODeDfi1hEXCX0qmEYo1lCv04uSQIEdUAA8TGwY5t2ZtZXXgcB8450P-AzonWsEYqSB0_w7H8thLrdjJilkZMuaumpPP4k5Ai7bB3_UDl1rDaKejIbytKn__UtUG7MAvsKbp0B2fvk9daBvc0GKr_Xzf699afHHB96Y9GWWwdKdGDNH1T9SXxUGR9yzuzSkiISvA1Mbb4kX6hjKe91oGB62oAiEl4-G82u4efVXhKKrEwNACM8HWFKqFZ-tpcj2jZtcJB58ENsvJnhrroyMSfBtcP3KS9tgNhOVkQI0RGc-bmmRxzQ_BJCD9Ia-oL4lCoypx-0GX-LnEw3Xj3yOgQC-z5dG277vv_jt4ULBJkRcInlSOYXIEHJtNoEplo3Y2xCm0fJ18yso8teJBZ13R-9_I-Pcjr7K952ROJJWY6FpOEEP4THz2sgitpWERw_4HWKhTwge1kXqknMuMLemOB-_i2wdqhrjN78weICujSngV9pCWcsyo1if5ttmzymQgEI7euxB7GFC4mcjc2838Ogv-eIWG2Jw2qF8ZF3ZPPKQkqftn6QmTuTf7FpcYV3efKAJE4YZDnoqWdbyFtoW5nUDbYQZ2LrVWtqegA0F8rjtjwbou3Y5JVgF-nx6Yno_uSHrWz0f2JZGJkOlyDkSLkx6edgIFvQvHqFABTV-QmvwmeRMvUcIOBSH6USrHuHC1Vt-4233CK9CO_7EglFTrpG1oWn0FE9MQoAaWXNMkPd9PSGxulyzvBp65jCL5WUNaxzVzYzdiePB82L359WU6VDi2hO16hMnB7RZwa8_vee1e3Ogss6OXdPz8ae5khEfajgfSEV-jYK_7q4UWPj7LsfnFP2dWFrEaTCWSG_bepr0GMcTS3dM6EEjQ7m2ofnxpeE4xGxM07gX_umrbpVyVDHBIjJXJ2O_57OtiU9tfQJ284HL_v4_DpFWwh1FolKI_WLZdP6OT0xoDZIr2BPvGugt85OiyZCIAgdPybZOCG-pOlgjpiZ8LJTS5v-dW28NSU9SQ-Tr3shpmXLPIop2GwtyYwDZyt3L2EXfNCmw4BaRHSRuCgo1LqWcU-PD1uksTqAgLq1hVKy3OSiggTaTRGnQktgD9Uk4Mhg6Qiohne9sxW533HYbxktIjqnBzNzKvmU0yfudRMTJLjmx5hJlYQJ1fbXDY5OZZWjqdp5yFQfr11fY3nMyqcTQI5KsdRY2RkEUg2r9SBwZJljxTuW_TeABEo9UTzVrp_gfVRQSZqL9f-915uPAzm5BEEFhvvC3RceZhZAqiv98JdQPSO8QhLGFivrvRVr4gzk_utMlCuRUVNrn3Wmem8yddTnAZewNqFqe_ugmyZAs8ZK60JAmtR7OmI5yuS_jCeufgHINg15nCrH1MWhOsBQppkAeze-b7d0eWLaCOhqwipeUJudkKPIM_niEPgfK00peiJ8PTiiLI2Y5Z0s68Om9PWTaR0pK4h1Kz8pQrlJAxqB0WUfftyDuEOMSYBczHkJyuOvnirp1wVHSheXHNdfhnnMCJvC7c35wsQYi7h87qXVTvD9bMPt2pUfDACbToGdeeBNq7u5tUekYyHYFdmwQadeTBwAyYAfYs0XgvjzpauoBgbru6yywYp_O6MqQsOoX9zUwv32hHstAaGyiFqxkRixFdyO6LY0lyJ7KDVYdB5x0-V1Q59E-yob8kCUwpkCjiiOM9zHAgU8vxBonrnwQOT1jwD4rXBGUjX6ZaH7OXuZbABG49kOSt6qFHKnyBbX32ZhdnbuGNZIxiSAFLcN_5t0_4yKNVjYNldcCRUSOk1RsPz4MTOXse71KJfXyxW-U8bwC4yu4x05MwNiIy2okZ6nrWng8yMRwGx5nXWS3migByZQe95LXEz3tYGllZHxuoQ3qHmNwAEqC8QDvYXyk-XgCmaEPlunbf0v-JDUWItotY3Bgp62wCPuhKG_kxzUSuU3xvL67EYkX7VeZAH5rZVywWvY__SjznrW7jLdYGV3PV_9sDtEEBxEcYYdJDgH6eHBqDKNG8JxD12eChAUaBHg0khQ8hxDBWTeyTwbBiAHt2jwZYEERN1-iCUhfxj4QeArYC48PrQkQvwtDDt8sM9OBouPfBPzbZ_toPJNveqv8wQ4KG249lyk6tqJ88_vZFzYsmbk7abxWR7SHVfaYCnhQtUReEgk-ebz0dLzWXvtfFQKZCw7HhkiYaCENhV87f9EtKeKoglhLZ-JhlsFIeSckDPfvKAiEJgUr6GQdTPy1IczZaxC2Ws3UDGvQo4NvRHivmPUBcgM5stJVAdZpzN-D1KtkdV11hJy4SMLgLf-bCF31mhzA7Z6f5jlU-8kABo27HbZaAtBE_0bbYCDTktn_QtGR4BVbOF8fLKHjUrgy_6WdFX64mjdx2nA9oIpgqMZoxXnh9otnnRBcEthg8MaBcngne6tkhwQx5KZ_QKhTKDSs_n_LRIqvfSRKSNNX9FvUv2NX_gRLTy-AxKpoDLlqFt_nWFt779yL8ACcWbcwlmKSxaTPSw5cgn5ih1OtzmchzIox751LQEvOssnf8-Sr5tDplTZmGkMdV_YfPH7UFbxUarSBEY_M3XJW8O_kdYpfYUCkPji1es6RQzQ_VpW-7Q2SBp5TM23vG0qasci0qksKNyVZYZJNJdsctcNDYxjbgywept2PNkVgdjtYA13fV3dNqRvafAx3UDN023InZTmVKpQvqEtPS8OAEnW-ziOqNH9IN8qoTyxj8HphD4stFDAwTV2dtuOuQBdUaj23i4en54jPijnGUSfvYMnvpEYU0AnvzvS5fIDAOetZ_UcNbaVjn1dTPDsDMUDRJTc4HVeRyde0p5ql4uRfcm8gou8OFtnj9lH-TaFOrWc3UQW__Q4WBn6wg_LcU8xqL9jk36oQfBa3wS9jeyiutEsxLDRnQCk6OwklwJoLfbanYL_wyNEQ8Nc9Lywbv9k1_C4pF7x0b5jmaba2z9SCYGxc6BADT1BtgGKpiDLMbhy0dyrdYwW4FPRojogvN2jnkA5iNIALlFGom8BJLXwJqdC0hjfpTK0CN3agndI601X_rUzZjvbikVSckKNZnsLH8Mc0Ek-4BKQqZJTefbpiyKU8Z3xkOTaUcix4B2herN0sY6AJ0jyCNpanZBYsjA258N0fn9m5-1_GFh7ugdDifU6iyZkpaP-dYqLQ3R8eK1_TBTxyFE65ks7sa46ow-R87h9dTWgLqbLucw6MB2kjOnYjHpj3y9WFFG-ahm6oV7DxIJFbikCIngHucm3apytKJOcObAkdr4JA3aOqyF7_Cexnh7zmMnEYVAQ95xM2QkCBV5XdRNSXudMhiVI-iXSWxezgd5rYpgw3AFsLEZZh3EMZa99Fn0PyH85wHVBPA2TfKmatmJObOLUj5Zo8KDxoth-T1aXwMRZf2minfEtA6ZBtMvep2R1L96GNuZRbiAXNUU67dF9hKfuNTxLFwrKr-ZGkQYaCZpVRJTfGqb0ZVobV1r3tcxhfqcCv14niBsBv_-5z-CdT27bJzb6fVfs_tVqRYLkYhkTemOIQrJFo6bDO3-G8fZEe2seJnu8HymJh5CM2TrHw9KJI7mwGwqRtzXI1HQTmYF4TBW-bjjloEg7Szgq1SeaYXokmGZBIoWJoNWEsQmBVaWKEhEi-XMLyhfbniDjXs6eBa77lgqIgLUNkKGWdsWczZfmqxXDF7Wcjm7wjr8p5zBZ3XtvMGHE81rbKXdJWGN13WIPI8wJPZ_3ZYAh46seBqnVQcjLgWMxahJq5EVDdl3_VuNOL-UI_jgJW4vZkpDOCpA0gXnPOEjFsMjQBlRbC-lo9yvHuEl5YDs6RPNikvdMq2CTpIC24qn39cng0GcLYGEdAbJzqKh-mhtXUO0yHuqY6YYI2Sxh-uXspnuZwh5qCbeXjPxttSJzxrsp_IC7Ekn47TLq2GoIxaFR6I2gY0RMs7cbDwHNoDfqQihGo_EsK2IUForGVEbZ4CSosZPmrSg_hOuiYhxKOMHpii_FdS5KM5DEq7NdH7D52QzomqcwhyJiKHqM9egYAlFNmDhXE6cjNxcLdVQNqNPKivRDQdNw3F1B8RUpQcZcXJb3fvja7JloKUhH3leG4QONnPfub8Ya4-xnB6AAE38t2mzbDuNCtYW9w93JOK_Xop3FKXOXyE-BODPg813MQo5Ka4UoJZPCMAA6NHyWAe8xKMYah5Y0-bl3pnJAlKZ4z9Occg2xj4CoAAc2NfXDAXgj7IIL62w75lRpOITc7fn1o-ia_qLsmaDyIPZhe0D6jHQ6k_igjSbFwvSMk86pUu_sfIH9T695S-L0xvX4r4FxRKpmD2dEw3V5d5MD6xx1SVD9DBhkOEceu7oGroBSPsKZaPaVSVSqOvbq2re-Z-Kk2ZkdEkEFMKvZdtLNCYW4dw101x9k2KcxbCMvESa_qaPSz6ZxiOBkZaanufh_uXCUWt-no_HmlFOGvS9KXDVSp7"
+          },
+          {
+            "function_call": {
+              "id": "adk-2d998b94-c302-4076-81b4-22c88308ecc9",
+              "args": {
+                "agent_name": "vulnerability_research_agent"
+              },
+              "name": "transfer_to_agent"
+            }
+          }
+        ],
+        "role": "model"
+      },
+      "finish_reason": "STOP",
+      "usage_metadata": {
+        "candidates_token_count": 1471,
+        "candidates_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 1471
+          }
+        ],
+        "prompt_token_count": 11010,
+        "prompt_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 11010
+          }
+        ],
+        "thoughts_token_count": 2156,
+        "total_token_count": 14637,
+        "traffic_type": "ON_DEMAND"
+      },
+      "invocation_id": "e-611b1a67-a552-4224-86c3-a0114b0a0bc7",
+      "author": "explorer",
+      "actions": {
+        "state_delta": {},
+        "artifact_delta": {},
+        "requested_auth_configs": {},
+        "requested_tool_confirmations": {}
+      },
+      "node_info": {
+        "path": "Boom_vulnerability_agent@1/explorer@1"
+      },
+      "long_running_tool_ids": [],
+      "id": "750ed59d-3000-490d-a139-2481c6f65553",
+      "timestamp": 1793114807.7914064,
+      "is_final_response": false
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "function_response": {
+              "id": "adk-2d998b94-c302-4076-81b4-22c88308ecc9",
+              "name": "transfer_to_agent",
+              "response": {
+                "result": null
+              }
+            }
+          }
+        ],
+        "role": "user"
+      },
+      "invocation_id": "e-611b1a67-a552-4224-86c3-a0114b0a0bc7",
+      "author": "explorer",
+      "actions": {
+        "state_delta": {},
+        "artifact_delta": {},
+        "transfer_to_agent": "vulnerability_research_agent",
+        "requested_auth_configs": {},
+        "requested_tool_confirmations": {}
+      },
+      "node_info": {
+        "path": "Boom_vulnerability_agent@1/explorer@1"
+      },
+      "id": "6517f9ef-4749-4506-b17f-e9a72420c542",
+      "timestamp": 1793114848.6839294,
+      "is_final_response": false
+    },
+    {
+      "model_version": "gemini-2.5-pro",
+      "content": {
+        "parts": [
+          {
+            "function_call": {
+              "id": "adk-3c85409d-8831-43a1-ab09-cbda9f0334e1",
+              "args": {
+                "request": "microarchitectural side channel attack on loop predictors"
+              },
+              "name": "Vulnerability_research_agent_google_search_agent"
+            },
+            "thought_signature": "AY89a19MJmWOjdB2MvmyMic0xNqg3rPqVbzerLVLadvjao4FtlCyCzqXSxNFdXGzc0JaauHBKz6qeY9xc9aG4sWQ5hUF7c3YAu92Qvo_b83tSJPZHnMhkpP0domIP4yTOzeoX0ab7swSoNbaOKQaO4PsQQoq1yI4pNZEDBBlZyBgxb5rI21rDWGFOSWXmoiU2QdAfrA6A3sMD4vncyj-M7AqLHiJ3tNuZ9IC7ocf7R9AmX01kK5ZjAQ5KnLUGAumjM6vRZ9vTfr24pMGmDq1yjkJrVIyTVnbYJ1fdImxnJC7xQNyeHLSVTCQhWpA7A-LTq8Y9-fUhAVJHBHUxnKxK5xTGB8hOB-9DA8vdm_83qC418KiCzY4OcO4JSdGJJCdWZPRICnHL75RGfcNCsF4ovIetj9pvICnKfSk82hgN3vXOyTR0ZIvxV5wLR8ElIUGNtI5hPMZxrX0JRd0I350rGjfHSG7xeVMgBJcD7K41FA_uJOZCD2DbEJwRqy9mrkrrmlylo2jucrDBVOOY3hSSamUtHMdEHuFOGNqTWShpqFRPmZp7H2O6fRZ2dTar__mGBXxb7JhvzTeKxjV6kCswFBlPhUiWB01vF2sRPlzm3e6gW1kr9XECJlYpNUQcFYV5QGhBeAs6bX_sexV3_ed743eavde9pGVKcm3TmH_Sct1SCGjsMH5al_0iczxU8LL9NItevik13CmbmY7QhmHJfHPRHX6N6P3_PHJhBrZI-PLcgNfPKRJXmQsAIkguBBBZRAyoUGDuoQadrcWprVebglPBZo8mtOSJ7oJD9OvpX9E1Dg5NAGAeV71posqm8nkE_zUZo8Sxas_WyrXELLekFzfUWXbFYHr0v5g_hjiIRwQHI8KzIcanPEF_3CJ5_VA_EWldSP_TUZi5r-tJFjGxureehJeevHRlGbOVOaEldqNJ6a0yBd0AX0B2KPu6S8tpRQdtLdr4P6GTMPdOTtif6q8Dtkjcvx-_GZUd2l0TvRxqMzJ4ULpB_chdR1USWYWgT33LH7hcWLP-4F3LfKva7FIyMK5NLh1L7hREaRumWXIIqDWAWIRXfilLo8JPGnTbbS6vPB9kAzM-PAZYDcdjRmLbolNJkQ41USo5ojiGPEKgkN1JDvhDHgXbgfecyyGum9V1pSMYJ1imT3EruixOMrA6cay2MO9w-176aSp2WN8yGThj44b1CZbweuiy8eTq2Y92RzahidohFjwken77-B5uL0eZhHGoXZgeQclGCTEYf4KUt0UhjtP3WLL0aWXyeBfrh1L_E6nr48RU6IQMw96iWE8FKVfIlVWWCpcnJvXzcIdgDs1BK-XFhWWebLzwTVGk8moSMv07MQXx4kc4J5ZWKLfBbyPBfNMqSahu-Nbr5bY8zGSgPxkMeKdoGU3PQR9N2gWuPO-QYmRY_zaJ4yq0FcSYc7LdUcHsiqfwT3UVKgaYvwtDL41H1_GqDCQSk556LcA7rdaZ8IfhO-ULV5DZ_J63FCCFj0V9CgpK52GLHz-s70PHgTZL9LSBCyvDtE2f3cmjJX1O9Ah8Qo_Wc2mXincWANm1YoYmui_uLQ9XYKSfFvA_Nh-CEK-M774_PFyYQKZEtRyX9NhXTPJ3uUG6uOUh_HHgAokrK7NfegYEnPTIIUj-_mx7Flxa294fdF8eSG2wqk-L6DyQmMfehxt3adj3_HlbApgJ5O4U_0vRWXN9sXS6tgIh0vYwqCG9_hspxfrGD_ZNKLtq3CxMMnhvJvioDAOLGhQtSJshXe-eWtQex47UW7I61xOAffTlBqvUPevENwDy2L05GyqxVtOYEKoiS_UkJkjLW5Sk6-4OVV_fh0ZCqD_AnyFGu8BHs0E9tHMNKzhM-MW5FAMth0-xwO1Mqk80UNlCuyj00CQeHMrg9Dzb3sVL3BYZModW01m3m-rpRmGB7YRkPj9E7Hqa4oU-EFm5go9faUaQKcQLKMcQxeUqAe1nNK7_OrXsKCdW2l8IYCkwI-j6kaK8vHDjN4O7lfeOHzJ6aAn6u5nSjVbdQ3XqYwyEl6_hFhhPKgnGRKdudXImOrrgHMl_2Mx-7IVDFI07pEjR6LuywZs6miM0vt9GkHtq67WcjVwj3saojM30m5FnQ5bCP5frCDDPZkC0ucznQ3r846nWOn4nGe-DIgFXnC7QA3d06RYRpKihxlEK25swYnoHacoU9vmy7ICVkTfnvtmKW4wQmdBj9avetSEmy1ogK4CTDkJRnB0qIF1rTBOEwyKUl6FesEQrimMVAZ-qzyB7AbBNDw31bZI9rfQDKkVza9lK6Rt2gpNObyrk7WlRXeX3FvpehYF0-6_mltcgP0SBcxFxgipQHfWOai8qrUwG4MlZTr85ATK-FmLIZV0KD1b9zPE7_reyUu2PKgII0ATSL9hWTnzKfxBR0a7_C5vem7vh4HJzEVqjs4-V5Te9oVex604UqztS_UT6rsEAcU7BCEX5iiojN7kvrSFM-4Wm-eLmSr9VcC5wRx4I7lT17_tOorSNr0imIWAmvoioaff42YjBWYLRAygObMY5KvPfmq_F1LMiUSzKAbqffuTjP9g4tsk5INhBFLoqr_6jYlnbJhGiUJaFcmGt8i1Mjyh_WdKkGmGpObyqv9TUvFE_KrjdMSz5Vq0cSjGqRgaeSlF4KSPR3HiAfQFW7WiTvzQggbX0OyGtX731JEccwEIPUEDZdgnk8mnoJEi5QUm_H-AqqkDPysBjB-5fdyXV73lB4mOrI68ZrntOjC5UMCSayn37QU1tWHD8mt-LLOGBBWjuzpS1Y_YNMldnaJVJ6E8sT8dK4W6-CzJdACp5GTd9fT5ua7eoL-u8YecswNR7kqm40SM1aSLvIXLwrIKGxR-KGaR7PcEFgiM5r5ggTKdA2UT7rcxu0neGeZliB2Ef4hmDTZT_3Av013RCPFJ3FpgOJoVAxrC0GUazvgO2uarpXQ8wtF2WGM8arIMTsEwMHi64Y5CBnbERvyPs-aNkLgXkX9u3KetgamWH2jEIBzexylePDQGkL3kHab2nJRFIGwbE0tFNRfLAuFb24dSu6LFhqmdzhFf2gYZl7hT1rNTCfCP0G5wCMD3jzCeEYi98TXqhUs835sQ_jhjSFRZb4OHf9OPs3Q8AA5vLLOdmd-eiDoLRyuwV6ZosFQk96DF6_HPqMXf6aBINBX5ubLU13pi7-uOKI5EvmNK8CVHqwu_TgPlolQW4gYNTG3piKSA8ceDsf5E3ZHYj7uBMdXGcNiUEPNmnvzT6b-zAO_cchsKHna3KEiGWKKig3mvgyEsx8LOgrcZ2XFA2Ilmr_sMVVEeBBObKuvd91d8sNQRnCaCGNFWMaXscerHEc24s9UqRN3g7OkHBdR9y6bfIUKDX98l0bbPxpxWXFuPoQpI5Zf8HdDIfSMUCc2GRC0="
+          }
+        ],
+        "role": "model"
+      },
+      "finish_reason": "STOP",
+      "usage_metadata": {
+        "candidates_token_count": 31,
+        "candidates_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 31
+          }
+        ],
+        "prompt_token_count": 13279,
+        "prompt_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 13279
+          }
+        ],
+        "thoughts_token_count": 572,
+        "total_token_count": 13882,
+        "traffic_type": "ON_DEMAND"
+      },
+      "invocation_id": "e-611b1a67-a552-4224-86c3-a0114b0a0bc7",
+      "author": "vulnerability_research_agent",
+      "actions": {
+        "state_delta": {},
+        "artifact_delta": {},
+        "requested_auth_configs": {},
+        "requested_tool_confirmations": {}
+      },
+      "node_info": {
+        "path": "Boom_vulnerability_agent@1/vulnerability_research_agent@1"
+      },
+      "long_running_tool_ids": [],
+      "id": "b3dd01a1-d347-4102-9b08-dcac2de2b4e1",
+      "timestamp": 1793114848.6885397,
+      "is_final_response": false
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "function_response": {
+              "id": "adk-3c85409d-8831-43a1-ab09-cbda9f0334e1",
+              "name": "Vulnerability_research_agent_google_search_agent",
+              "response": {
+                "result": "Microarchitectural side-channel attacks on loop predictors exploit the underlying hardware mechanisms designed to optimize loop execution, primarily falling under the broader category of attacks on branch predictors. These attacks leverage unintended information leakage from the processor's microarchitectural state, such as timing differences or changes in shared resources, to infer sensitive data.\n\nModern CPUs rely heavily on speculative execution and branch prediction to enhance performance by predicting the outcome of branches and executing instructions preemptively. Loop predictors are specialized components within the Branch Prediction Unit (BPU) that forecast the behavior of loops (e.g., whether a loop will iterate again or exit). When these prediction mechanisms lack adequate isolation, they can introduce security vulnerabilities.\n\nKey aspects of these attacks include:\n*   **Exploiting Shared Resources** Microarchitectural side-channel attacks often succeed by observing how a processor handles shared resources like caches, timing, or branch prediction structures. Attackers can infer secrets without directly accessing protected data by analyzing these observable patterns.\n*   **Branch Predictor Vulnerabilities** The BPU is a known vulnerable microarchitectural component that can create side channels. Attacks like Spectre, for instance, exploit speculative execution vulnerabilities within Dynamic Branch Predictors (DBPs) to gain unauthorized access to sensitive information.\n*   **Pattern History Table (PHT) Based Attacks** Some attacks, such as PHT-based side-channel attacks, leverage collisions in the Pattern History Table (PHT) entries. The PHT is a component of the branch predictor that stores historical branch outcomes. By monitoring state changes in shared PHT entries, an attacker can infer the control flow information of a victim process.\n*   **Timing and Transient Execution Attacks** Attackers can infer sensitive information by observing timing differences between correct and incorrect branch predictions (timing-based attacks). Additionally, transient-based attacks steal security-critical data by exploiting unauthorized transient execution that occurs during branch misprediction.\n*   **Indirect Branch Predictors** Indirect branch predictors, which determine operations speculatively executed after an indirect branch instruction, can also be manipulated through branch target injection. This method allows an attacker to control the predictor's operation to cause specific instructions to be speculatively executed, facilitating side-channel analysis.\n\nWhile much research focuses on branch predictors generally, loop predictors, as a specialized form, are implicitly subject to these same types of microarchitectural side-channel attacks due to their shared underlying principles and hardware components. The evolution of microarchitectural attacks has expanded from caches to \"cache-alike\" structures, including various branch predictors."
+              }
+            }
+          }
+        ],
+        "role": "user"
+      },
+      "invocation_id": "e-611b1a67-a552-4224-86c3-a0114b0a0bc7",
+      "author": "vulnerability_research_agent",
+      "actions": {
+        "state_delta": {},
+        "artifact_delta": {},
+        "requested_auth_configs": {},
+        "requested_tool_confirmations": {}
+      },
+      "node_info": {
+        "path": "Boom_vulnerability_agent@1/vulnerability_research_agent@1"
+      },
+      "id": "21822f9c-11e2-4ee9-a656-3ae681daf7a8",
+      "timestamp": 1793114865.7609422,
+      "is_final_response": false
+    },
+    {
+      "model_version": "gemini-2.5-pro",
+      "content": {
+        "parts": [
+          {
+            "function_call": {
+              "id": "adk-39587216-ce5d-4a19-a7ca-a61b2f6f204c",
+              "args": {
+                "request": "\nHypothesis: An attacker can create contention in the 16-entry Loop Predictor. By filling the predictor with a crafted set of loops, the attacker can evict the victim's loop entries. The resulting mispredictions, caused by the reset of the conf_counter and other state for the victim's loop, create a measurable timing delay. This allows the attacker to infer when the victim is executing specific loops.\n\nNovelty Statement:\n(a) Prior Work: We build on the general principle of contention-based side channels in branch prediction units, where an attacker and victim sharing a microarchitectural resource can influence each other's performance in a measurable way.\n(b) Difference: Our attack specifically targets the BOOM processor's 16-entry Loop Predictor. Unlike prior work on general-purpose predictors (TAGE, BTB), we exploit the unique state machine of the loop predictor entries, including the `age_counter` and `conf_counter`. The novelty lies in targeting this small, specialized structure and manipulating its specific confidence mechanism, which is not present in the other BPU components.\n(c) Significance: This difference is not cosmetic. The Loop Predictor's small size makes it exceptionally vulnerable to targeted eviction, and its unique state-tracking counters (`conf_counter`) offer a novel mechanism to amplify misprediction effects. This represents a new attack surface within the BOOM BPU, distinct from previously documented TAGE or BTB vulnerabilities.\n\nPrior Works Cited: General literature on branch predictor side channels (e.g., PHT contention, Spectre-like attacks).\n\nClaimed Delta: The novelty is the specific targeting of the Loop Predictor and the manipulation of its unique confidence/age state, which has not been previously described.\n\nITERATION=1\n"
+              },
+              "name": "novelty_critic"
+            },
+            "thought_signature": "AY89a19mIlSXgkaHX3twpXUYxh95h-xKgBAcyZFbG6Iklk-6rog2M9bMmtV9S5HsmPhle49AlmkNpO_rRAwbqWyhYfCLla3zwLUeo1LYjjOT91jJMt5yKRvJ-ukkFumykXZvTF_P9L5DaeBbkczNKNzh2ine4EK34RlMrwkzCYdBVm0tgUNJ5p71p0JUdjHobm3AHGWO_xwcgcrRd6VwKh29uxzCn49J_GOKU-mnzpO-EL1uKA16Q2pbX_dngmDS2RQToh_NJee71yQM6vRfgl1DMQUbLWHERo4s9jFzNkOGR9cxQJJfDfOyg-ge7XNyKK8QS3x6KrAXHV5nliO6lwLiNQgaC38qnBSiQ0h196FIovylsQQdzWNUfGMG-_x1fmpIoxzvFGJQiV2F5O82jvXz1h4yOLBfYlC5VITvzoN7Mhc9z2dq9tWqT0Wj2JeNL5vCygR2D1DkOIjnpNkfmDngUOWbbaqQUQOdSScM_ILDKxbCDY8GtqIuPq8yicrFKzu9c4u_xJ0mcASBW_bHp-HpqHPsi_SDBkAmL_hu88Yv9Y5DduOUggILWGjV6ynA7B595ZGeZ5MmIeAcH1-AfzeCEy5v1ce499hAeBpBtxb9rHCqLpbJK0nod86IYOTNVeJqhzKBkLcjTHqlRdJmGYEdDsWEowMerelsluoaLHmUPynHF0wwA-4H3nBHAXc5aSjFyb9t15HvC32FWmvZ56NwX5DDf43TORe1_pWrzdkqgqcQBkOkSL2qG56irZrHCnvp65ugcCDYD5tzLWrfCOrU5hmGAFR3hc1mikBB2glyJY9icZdz4jmt1koQLzLrgRv_OlFbc4f6pC1vswqaxEqHY1YnDe1bF-Xeiqdxzpb7MI8_o-TDP_lRSAec4W_zlk2fU8jLRCo1BelBbd7LWUGm8Io-5N1Vy1z50uZ-qwqGSyTuAwRzBQh8PPeWzot5z5bs3ihizV7sgAnAd0p0-4mZ_zwIso1tZdbExfinbPZE_k8RP6H0ZuOgQ9R6KPPNmvghDvsYmpfH4MWGTw-EL_MlB_F3xwuJ3IgrWqZ65okMw1Tr6RPEr4rvhbgyv9WKWeUBak30rsx2ExPvaIwZwO0K0R-_QhaRH4ZdZCVo7H5XJkyzGL3DRV84ZaI-1krQyVnykHm8oGIrUjEINiRyNASQ-9FTXTLH3yurIoVZtKrAQb0S8LefR-Tzlz-M4fPja0j1xW18JCz7EiF-N88wXkEYHN4kwZvejEQhcrGI5jnwvutFKm8zxg1nNp5P-xcnRShIEi5ooTSv5o-Yqbk4x9oBrji6prKkdlrKLOahIApTI-2JQK-z4L8GS9AuUG3VCiYTwlNxRlGMYLFFqqVqK3qgoLDpLlllJs8ZqKKkoDA8oVzTJZw-B5FAPbc1CEqHa7HDM6wgLMzxEDSs5xTew4-vM0RFKOrnMe_dRxMOEWBBvuhrwJoG_yA8BYh9L0dQnCtAOA9IUGL9WEa0VtvU4iLid_JD84gqqFKziKFyXJ7t73sTe6zcr2bKDPqf0AsNrI7f7JKOEzQ7Rp0OnhANXVYj1IhRLJqh5vhcQT13s-xXceSdErRMzDou5fvAP_5RK0xpE3sB7yudQQMLl_kQ61x6q8Iu5UUb2rckXmAcEZ6Ubsv8sAWItjcS_Cn27XX9q1MrwBY_rtg8WezAl7s3xSq4eSKh30KgkKErLQjFp4ekcwiIbymKxa3u0TNSQuR7O_J1NRu27kC86YSuyrNkq7yJwD_rkL8YUFb68yQ5T_o_Qc3pEurSzozJWUMfbsA2aFbxw-fUAebWfk3Wxq6Bvwouq_YyfpwO9g8wNKlBndC8xNVn-YhaWz8LfiHgUhw5SO91N9abiveFtEKz2xV7EDLcnctviJeQjgiAHpaM1cTVI2XoP48I1nmhyd2nTJDy0KUjTTb_x0ztG7cINp09Wy8kbQMx5NWxvYKJBzaC6rq81T5pQC2UGY4iqQNcA3gNHhX_j-WcOoLPA8osrftg-Z-BqfpbcPqdK0Dghws1c0mAnJN5z8MaKn0khoppV-2wDQmkrp3Q_T7Fk0WgFLBu5EfZttb0WHlFDH8ITH9Y4BPNzm4sYdwIXXvkACu3tTpMu27HCi8da9nOEdje0sojMexl1Vrq0g41kQtyDtHldfSv0pC_sI4h95NplXPXGdElQJF3zD-_J_MQGBBbsUOVxwsqTq_Q1cbJ-1LS4kmMW3_tlpH0kdCthnNG88bN2C5wDqWf9MyAhHJhZkuyEzOmUXtddwvBGiol-L3CdB6fPeSNWta8B2M4aX1s0MmF6sOBltDasjaUV-h0P4XGFXYkCr2tV3SCpZx_6hDrze-8jbiEp7pHp7Tb58n9bNqRlpA8fGxavujvuFJluWS1ly3rlLHMZKYPNb_Z8pkr93vWeUVM8lblrMTdfrKDfMxnvAaJLzu1wi_rrxU7KNDx2w5-YOh7rDeG2trq15v7Zmmv84N-EOouW06gh9SCb33S_SQWIsmIoBFJfWCK_hvZsl5dgLYyfgplQ4TeeqL3pTU5lIXal9ya2vtgHUa0mkPb95Rcd-K7sK55sJlF2KM56IaTTVqEtpCsvD9EOfrVi4s8L0hAHXj80_Zl7j1sGg0aDAP4q4OmIf2m9qeIwPvEKwWiPBZHlqwuvqDYidEvMRQEKqhqhPzahzEV6AMHcKNWlof63oB1Z7KeA1weQJonVUOg4diRPf3c1m644xTJ3oslJKiSsRBYhlv68H-fgKnEpGtOsi0BP968E0qS251rPxGS4I-n5NmXWY0OIeRKcHjzo6OamJB3TcO5aUnq1BBBh1wUpLsmpy0Owf2ukv1Pezj1q-Z4Kcv1SVQNzIDWr3b5CIrjVDAEJXzAz0l9OSayvsVAQQm6363haVjkT5tRRajJyGsWXWWeVnHps3Cji1AIlPFC2mSZNh5TUnZkfUEk1XirXbrkstOk9o-CgyhXFwAqJ02VIAKy-hq4QT9Gt8BumOZQaI63vm5y6714v-Tjs9PZrSPuGXFnd2MEHDwe_E-xqyycgNZcX0Rgi2GKuuWvG4KvLf9_C_3IiedOGBIHsvk1WQvdPxO2_D6NHeQCwnKBYvf4pta8f8ne8ZliVwk-V_EwtH4A5NASkrI4UNc0t6oXZG4lAqwVByXvd1ChthJHW_9PRX7UQAFEk5XBAtIvVM7l8YnwdpvJTnLcIVad2VSJeRqg93aAcyNLBb7T1ehG7aiKMk0OLkIHiB5t5zJzfKrSpKApXx-GB_ZKsmdi7HPpCYNXlg7hB6ls9e-J6Sg7fcc6NNNWA-fn1XMZHD3E2JKDm7bgAzIwOqE-w88HExc-_ffOC2isGY7Z9PcIYS4Pl_5tEQXd_-__KtDiFvTbayLe9pmNYNLdk8ud1ZLCNelrE64559jTLhYQ9ss3lxVrVaOSGkw886Vruyk9TuRlhqD_bEjSX7Q7F4prLQohMPXSHGG0w66vQa7y5kQy2m74giVVFpT3WqCXqNL7Sw5yJknISz3qE7uTEEFwZwNkHSy5g5aRCbc91Jxc6LWEXFo1CHmD1MEAFSwLSj9WKuOOuyWuS_gp7csPtgxxqdgsiIR94_X4LHSQfTeWbKfwu99MyxAyWfURmNM7cFOTVYkyYAAvGNUAmwKM1SVjCLw-fOBN-M45k8rEyJoOMoqab4mBhHxxY4TMx1UAwBluiONJgbaETvjIbxGCFkeH7ClXLptVAcwjpZnSPtdvZba1xo5qr1TYgz-ELzdhHN-TJUVDb894ei0ZnQAcXopdS-fUXmirn24wjF4aKylu5txtxUAmEfYwz9-HUYCRRiuzOvIYjJO3KwfeD9x0AntMWNmIQU76EMjtENOixEAnL6CsqJ4DoBBJ47TDT-l9rcG0PFLFEkGF3zi4TEymtIaxiKgV5UqoL5VqQ--4CSvOf732unoY0HUSQdr8l9askUWuYcWQrM_7LeXBtDKokpCMuLEmeKD6xt-_vbkHtGHSEX2KbbN561E62v5D9gjEz3XNx350tDZWAPpioVEDmjPQdds3xufG2V1nWIR_G4PXXpWkz_3Qql1Ic5TOS9zFeYZhYHUuWKRMVAItV1Da0w2sEj-5rY_3x6d_q7oGwV7uukTJvLj1ymB_GK6uBH6-8Ls6ZA8t4LWd3gBM0xM7cODY_l4HZhcXKB-0zrT8Gn2DjpjvZcEGWG9yKCdPCPmOr4ecMtxt0OCCZ6fTYjzXyb77x7x4ueuEmT61Di08YYVoMvHd6oBnJPrOvKfDJd2cKSjCeHobowA0QQkSBEqZO3xmQNLlfF4-0OB-rBGu84A0Id0_2ipSXLekJUFNmBLQS1O6NoCiHMaUw0zwCT2WZYM1qZ6s7QbZRBCm9CNUwEt6u2DnEqJEU26hHupyIna8LfbchpuCAmjXVCCxEOn9HB4MukYiw44HIJ26PEM5aXfQ_CcvcsM00RCQI242ATh7ooV6grm6VDFoasKPlde_HmjA33WbwM5V7a9uey2zC6ydvzQAUBNgSExXb_wn1tv_P-xmZcO_UsvOnGAkJeH8ABAPVHmX504ajXRYjTUfm7MFpQlns5CpXuR5u4jl_nLoIG9xBpeHaiCrOeeGw5jLBItYu8Q2jczUZJwZCdyvYL04KQb6fsUhKJKNTRqcoLoZrJMvnxo9T1p1A9CJUJMXvgVkgqNoHKLjQoUJCnkaBegsFUwxYsCCB_coqEoN6QA5uv-U6CyG2Nbm-2UD0yJxxOPyl2WcKf_gG8OFulAG0SqvoCKw8DMIEmyG3IpPFUPx0YcMXv-D_RVgwdjNoT896_Da12qBM0M8wMoxFqYaR0fdpKTaiTEhSIl2HItDCe8bic2pejwx8WTY9Q68iM0zOlPNePIxshM9lq6IC2DRmyk_yJ3HO5jQm82U4EUi8YD7c1mGsdqG7vN8nSAZ7hUnY-A3zbjcqFowNH2FNE4XtkKqy87pW9ygFgVAsTkXlnBFYV0rhUp0qZCBq0o8n1GiFl8DH9SmIkaQk_kal0Zs7fGAGTNuNwWWaLhWv-ZjH87F22rW81lkgaTJ1H-0y3212qM_9-22_VbNsumxEvMeSKPB4n9bksChSk_Sr5lFZDeIl4S171zsBhJoyb51yGAJvHKibOlt0WCbFpbn5hULkbU-phsvDxds3ER_5QNbxq3WobjQi9_ujHDYDx-eHJVrLuqXwfNKqPKEQGxsAutkchmY"
+          }
+        ],
+        "role": "model"
+      },
+      "finish_reason": "STOP",
+      "usage_metadata": {
+        "cache_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 11796
+          }
+        ],
+        "cached_content_token_count": 11796,
+        "candidates_token_count": 387,
+        "candidates_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 387
+          }
+        ],
+        "prompt_token_count": 14406,
+        "prompt_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 14406
+          }
+        ],
+        "thoughts_token_count": 819,
+        "total_token_count": 15612,
+        "traffic_type": "ON_DEMAND"
+      },
+      "invocation_id": "e-611b1a67-a552-4224-86c3-a0114b0a0bc7",
+      "author": "vulnerability_research_agent",
+      "actions": {
+        "state_delta": {},
+        "artifact_delta": {},
+        "requested_auth_configs": {},
+        "requested_tool_confirmations": {}
+      },
+      "node_info": {
+        "path": "Boom_vulnerability_agent@1/vulnerability_research_agent@1"
+      },
+      "long_running_tool_ids": [],
+      "id": "fedf6382-0554-492e-9e3f-faf6e6a7b308",
+      "timestamp": 1793114865.765297,
+      "is_final_response": false
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "function_response": {
+              "id": "adk-39587216-ce5d-4a19-a7ca-a61b2f6f204c",
+              "name": "novelty_critic",
+              "response": {
+                "result": "NOT_NOVEL\nITERATION=1\nVERDICT_REASON=The proposed mechanism is a standard contention-based (Prime+Probe) side channel applied to a new buffer, which does not represent a novel attack primitive.\n\nThe hypothesis describes a classic contention-based side channel. The attacker performs an action to modify the state of a shared microarchitectural resource (the \"Prime\" step: filling the Loop Predictor), the victim's execution is affected by this modified state (eviction causes mispredictions), and the attacker measures the timing impact to infer the victim's activity (the \"Probe\" step). This is the exact structure of a Prime+Probe attack.\n\nThe claimed novelty rests on two points:\n1.  **The Target:** The target is the BOOM Loop Predictor, a 16-entry structure. Simply applying a known attack technique (contention/eviction) to a different buffer (Loop Predictor vs. BTB, L1-Cache, etc.) does not constitute a novel mechanism. The field is replete with examples of contention channels on various buffers; naming a new one is an act of discovery, not invention of a new attack class. The small size of the buffer makes the attack easier or less noisy, but this is a quantitative difference in a parameter, not a qualitative change in the attack's nature.\n\n2.  **The State Manipulation:** The claim highlights the manipulation of the `conf_counter` and `age_counter`. However, the attacker does not manipulate these counters directly. They are internal state components that are reset as a *consequence* of the fundamental action: evicting the victim's entry from the predictor. The `age_counter` is part of the replacement policy that *enables* the eviction, and the `conf_counter`'s reset is part of *why* the subsequent misprediction occurs. This is an implementation detail of the target structure, not a new capability for the attacker. The attacker's action is still just \"fill the buffer to cause an eviction,\" which is identical to prior work on other predictive structures.\n\nIn summary, the proposed attack is an instantiation of a well-understood attack class on a previously unexamined, but functionally typical, component. It does not introduce a new attacker capability or a fundamentally different victim exposure model compared to existing BPU contention attacks."
+              }
+            }
+          }
+        ],
+        "role": "user"
+      },
+      "invocation_id": "e-611b1a67-a552-4224-86c3-a0114b0a0bc7",
+      "author": "vulnerability_research_agent",
+      "actions": {
+        "state_delta": {},
+        "artifact_delta": {},
+        "requested_auth_configs": {},
+        "requested_tool_confirmations": {}
+      },
+      "node_info": {
+        "path": "Boom_vulnerability_agent@1/vulnerability_research_agent@1"
+      },
+      "id": "5ad50f71-e1f1-4edd-9fa3-5added0580c8",
+      "timestamp": 1793114902.6803555,
+      "is_final_response": false
+    },
+    {
+      "model_version": "gemini-2.5-pro",
+      "content": {
+        "parts": [
+          {
+            "text": "## EXPLORER STARTING POINT\nThe Explorer report recommended starting with the **Loop Predictor**. This was chosen due to its high novelty risk, small size (16 entries), and stateful design (`age_counter`, `conf_counter`), making it an excellent candidate for a contention-based side channel not covered by the provided prior art.\n\n## CRITIC LOG\nCRITIC_LOG[1]: NOT_NOVEL | The proposed mechanism is a standard contention-based (Prime+Probe) side channel applied to a new buffer, which does not represent a novel attack primitive.\nCRITIC_LOG[1]: EXTENSION_ATTEMPT | Changed from a simple contention on the Loop Predictor to a cross-structure attack where manipulating the Loop Predictor's state is used to poison the Tournament Chooser Table.\n\n## NOVELTY STATEMENT\n*   **(a) which specific prior works you are building on:** We build upon the established principles of contention-based attacks on branch prediction units, including attacks on tournament predictor chooser/selector tables. These works demonstrate that forcing a processor to select a suboptimal predictor for a victim's branches can lead to measurable timing delays.\n\n*   **(b) exactly what is different about your proposed mechanism, target, or finding:** The proposed mechanism is a novel cross-structure attack that uses the specialized **Loop Predictor** as an actuator to maliciously manipulate the state of the main **Tournament Chooser Table**. An attacker crafts loop patterns that alias with a victim's branch addresses in the Chooser Table. By controlling whether their own loops are predicted correctly or incorrectly by the Loop Predictor, the attacker can poison the 2-bit counters in the Chooser Table, forcing it to distrust the more accurate TAGE predictor for the victim's unrelated branches. The primary target is the Chooser Table; the Loop Predictor is the tool.\n\n*   **(c) why that difference is not cosmetic:** This is not a simple contention attack on a single buffer. The attacker is not merely evicting victim entries from one structure. Instead, they are leveraging the state of a specialized unit (Loop Predictor) to indirectly control the behavior of a separate meta-predictor (the Chooser Table), which in turn degrades the performance of a third, general-purpose predictor (TAGE). This demonstrates a novel, indirect method of influencing the processor's prediction decisions for a victim's code, representing a more sophisticated interaction than a direct Prime+Probe.\n\n## NOVELTY VERDICT\n*The `novelty_critic` has not yet been called on the revised hypothesis.*\n\n## FROZEN HYPOTHESIS\n*The hypothesis is not yet frozen, pending review from the `novelty_critic`.*\n\n## APPLICABILITY AND IMPLEMENTATION PLAN\n*The plan is not yet finalized, pending a NOVEL verdict.*\n\n",
+            "thought_signature": "AY89a19S5aiqZ4DzjIbKJt0UqmJca0cq4jrehLsZDxBjvPYdPhKcR03tktORH0hOlq8MsLR0e3fF7GXhOlvt4mL3Z8Oi29fqi4Uhc4sWYO3M3eh7bjWL7eBq7L24NreXafmYGiWjsBBQK84BrC9Y-_3UJKqNumO3_zE6tzhxMOc8PfCxQ0qzD-sftho7v-LXXRuvQI0SQSByljfSazyp3f_vzvNZ6j4pI9__FuqGo0y88HhQGq7VPuKt7ol1WQaDhpQ1wBzi4dMIZicGoNJC68AlWStXmaqVrilwU35KNZXvZj_Qn3QDY6yF6TRKcucD6FXgqM1L6Wb03rCBLR1n1WJB8gvfcTCzoOnCtbsjI7n0pPjm2AhZjiRRvhDcuqMrG1rdZwHVpaiNdnjrwYpDe912YB8Pe1i4qYZAHbBCUTQodmNnzLO33aL2MdHpHYM7l1wgtahpx0vogv4CLHHCYrFfTpEg7dfV0eMiEgQdq20E0LJBYO0bo9AjFfvBry75x-DRiTj7HBK9RI6kMdjFUqO6MB5aYqyQKpm0wTutV8juigGEj9oBrOks9P7JUyS6Ss-i0SrRmnuG1_MhsX6CMmkBwO3daMHTzIC0RueBMY0dPmPuovYOJ6dEJMqPRkNfRFOpAGGTGdBpjL5H40g71rkjZhRemGlnr_Blg89ujtlaZU4pVzMkcbElCt5bEGSk1oTPRoBefu6PxvqgWn8TJbTKt3RF86qaZ5B8WxRNGFT7zT-y5c1KrETg-XlJytGyBd0so-PXxBMA2dVrBrJp0QWIOai8nCegr88xoBOHng46Swepg8CbY9n5x5PNmkeMzQyo-jGQXLVEJoGMExZqHDpDyHWS4SkTPcNUWRnGj1kE2ARPZ8koCl7bOMIa836tXZtkwmvIxgN9ksybRkoBzQ11g98QYz7JRlIAylMwFIkfDZgnYzr01lHfGiE3jHu9HgZpQjpeVAgR1dnjwP2rAY6AeiYucpUbZ7JmrBV0EtItMMtaKZByuBkhSTSdWnb4CaYFaCq1Zl_qOQzJupWsM1zdtDuC7draKgI91gwazKU765KgeOUEdH_qSX9Pkpcx8dp0snRavjFSV5_Wmh-pBXO1-IMJeYwEGZInOmkBuk6WlrZZQhu07XVrqIPgIW9uwY0AVgzaPgb8oBwRPfsSt2FSvvWS8oT1hJejEGQ8aHFuXqRCxh1ZcLqLk8ezC_GUte-HRxw49gvkVYAQlp7cSwMS32oLHUeqBBSU2ulI802zPBZyeqSo8nN2qrLRvjnPVUteu7L8Tl8kazG8dR8sj0izJ1J7R8bQOMDqqA199dXisI7nc-FjbMzdwT5Tg5eVq2kjJRTM000-O1vb1M4UVJklp5pSMu3U_-94fxWLLIBBHtENdMSLKF2UaYk71nDMpU3P4xE3p9Qu-4PHHcv4hLCT1g2ZxTfEm7qcU61DS0c1HVXvqFy1Gcj99UfsjVOr0LjXS97DXe1KLNKc7MnYpDHQdcd48mKU84ILtqr2-xR7PHRIf362sHizOwZHpCbN2oSz_luqU6AnjKeRsFjTsHp2OG9tgWi7d1ZbcQ6jJq_6mneaTsp201VvDuGh_jytL_AfamkXD7bF14zbkAiIDCjGZwKJ8cNA8UuZz1vh08lMbeQaHb5vyZWhXXxFnFeEMg66siefgne7wv9R8tXC8uYvUwx-2RgETbM5h-kf3prFFs87OlMuk-t1Sg5gF0HeL9UbkiEb5FawOIcpcQmsp9yF1k34NLwgiJEkMukSswplrlk9SAayzSw3Ij_aiSuTJn-rXhNLzRpnl5M3Jg72_ZgMg8kNk2u8jAzPgxckWsspz_Zi39o4ucDoeBctsJNIKleKcjFPjEgLoTdgh7yXfAZH00ZltjkQowYmaeJJUvMCD6JXWiD4ILyMS6_ory_3WOLeCM9_atuMgUva_LxcTU-D1h3nelc_r3UPlUQnu3S38O0HMBZNlmfUfFmUxRPbWRLR-e0ZDB9nhNxWGzqhZq3PTJcJwYfPmD35q9q8qFh1Lv1Rhe0hEi1tw8z4mqWL62rEukPuIcdAVm3HmXtDSx9YaLbAglEGJyIL1Vevml4pNQJ6fVT2GwJgq4gbznQOQp14KoYaEoFGHw1xSflOWr5NS6JnS9UD1A_hTYPKwrjKTqy5jrs5qOuGKmVI7e4wE6IIDCkxF-3TuwvH4US8r7PuhlL2EpEoxfasTDmkqZVKM5qWVNjeCy2aVy-hId0HOK_j0c7USDH0s6AC0Umt_qxOTrmmir-pCnEURZTHG3kiRHUtUkEa4lIQirosTawJ1o2ei0WSrEnNernvJrv7a7bv9qbi52nPuVoexah-0vvubra93KGfvi3hpeYGlKcWlBiZFPGL-g3PHCBpNhXVQsLZh6n4Ov5iVhg88ae6x81MScZXUIC932yyoD_wu_-yHLhNRVJJhUvYdADUWz-sXo9VRtRGuZCTO8O8mX1Ga2iK_DJQFOAllGNkKyiBt4JX5DNHEhBcgpAOg9-Y_HaTZKujG7w2b3mjUrVo9o3eS_L8_iNuNNDMwkDOLuUO2epfEa4FoC4Xht3R_I2anX06GuWYuOErCwxAlcAPFYjco6HnZfZ16yBuAUmF4XxWqeAfoDvb73IImIeN-7ANZiTSVvjzVjbX_Lz8CKPMUv-QMetKT0G42nwr9uNnd1bNqg2eEYEcoseoozzk0AsxzHuYKZVCH9YcGFXEjdlRqBmed06Zzm5WQGzFj9MPvUdugRdo5HzrIgjjZZBIB4DDyiHiPKZkNFTPx7ZeI0p0Y3nuJX_lEB2qcGzzcjTlRiRwzZcKDzg5zX28u75CYhZzsXj0y076R864TJ8tYA414kKmQ41wODgDELwy5T-bf0LnqvMIUSKSX5GS4k7YomtG2vuc8336jsk66kbcGhg39yVzjSNTnHp_hTDUusZnOMJ3UkbYJuO50IVPDWc206bg6TCBswtYWXYUCILgruFT1c3SvjAzR6neCwyNRwMvoFwIoSBaDzFM8daVlL_yXlAtgsgmPPyVkc1Jjs8lKXm4odV3iq10viOXvtNvbbtc5vwpa6ryUVfJ1uFY_jHvGy9Wx_i7rF5vW6KRAHddMhbtPusfm2FyRX0K0nig7Kes7epxmrU9Yv7x2v--JnESSU-Tmwx61zbqe_Tafmp7L5fMTHtKSDPqo9p3psz6dSX4RoBec9evRrRk2w8IGCe3PS_ECasGkn6O0J52DY3Z4sF3AuT1881FujPK5qZ2fBtEMkHG0ZD_7F7oRW-fqitagUIly6KnK3u4RQ57hlkx7FuVZ1QdOlYJrYTamTMUqhRfHNNTrVFu9uns0rXBXKPzsBJUHO8UZAl3wOoqxCIXp5Zzus-QB5UWVKJtikQjf1DQMxdfycnIwqbgpyNUGDt3PR-jlT_mJa0LqmFPLTrcskMlMbEiwU8BJ0VksUnXNw3vt0JdiQOEqWHBVVBb9wYFIe7mhpkT3xcYRYo76KxQJd2zaSLpdCrqCuEzXhykge8tAVw5UOvd1oAHW71T8ZdVb7AFtSJCww2YYjdoDyIwpHGt7gmhy8Gc9CF80OhiSvr5PJqRd9E-zim_eyB6I_JRTzzHmGs0kXvku0BXOtRgKd0CwuasPgauC08HdUltanwNbQhcy-ZV8kD1Z5jIze-L6grFMWLe06WFlU1wQ8iFmKsIMSaVdL0AgCPtR3LcQ_r0Db0cNKiIQ9AdTTwNivvK7pr98VtA6FxIjnzyzbO6_4RnN0geryUSJwQWMdyZZb_FRgBmSjqIkN_GcA4bnFjIu_5FtZs9L9wr1NqSwvbdWo89elJc59cK-VR0Nlego0lWpDKOmY7ATKnUNZoiTpGj7YvsjmjLR2pzV2y3DwvgS1im8S-Nky6KsoLAlJvrtFXLcNaXjq7OEUyx3HGyIaZk0DOw3_0a0UgjML8_3aSqg7GXVG8r4VaO0B4JvjqxPIsmXqYFwT6Vbo7UXtbGsmgkVp6HZFg1OAythzGNUUBNllZAuX-Hj-824Vf6ys8GIxSB7eldM8a0cTtwc4EDFBW5Caowfb9Ncl-jR4oaztY5JWJTsO8Db8CxLA7qreegBBccW2rhHyyyGdYl7iSCQ0Q0_3dlRUdY0ZUNyLx7kuGKvOEkY-0tLJoEjj_tcWcJXOZjj3fL-W6dJTCzJnTvJ7KrsMlLC3q_m-d0nGK7OZvDF6OEbd1J2_TNhDQkSbq0gJ2QVR3cZZArpPfETBNgHofoPmnKi3ieHVJ-9mgMN2UtlEm4vYBkms_WDPsLJwkSBLyqbKXdZxpIUBcN13Cl_ErHdCMxEMG3evNyFqKmxi2-Sisw_IalEsIK8-eYrW7S7dEGT7DkJrrXquOnvZu2yWnuh06CazAkJk3G-cymD19LCbOCUsUYnhYvMkgIzzoPF6E8oMhjl-ilQxNaB23cdWWEorcN-p-Mr-E8WbbAadO71Zj7WE9ot9q6bPPzV1JafSOvZZKM9OXLtiMy4E-2SrDMset9e1nHLS5ARqwsILi9ualOVm3N5MJISGwe9doQXYEZnsKJK7lj9yVunZMkD1yCkWolTpaL7WW0kCFUiKIjKjCp96UfoaKtVk5H4Tf5OtI7kjTNmKCtN6paCxC5YwD8-xLCcihRbFSAdwKWXI57hC83Vve32xhLLNbErwYHuq7FCWqTjIhP4N8WVB7a3Bp3N2V3jPrtOwMut4X1WDp9Vcg8bB1I5b-QXNpMJ4XDkDL-WJ3wEY8EEFLKiLOp4RUFFKZLiTDzQWdhjpDUyMClLiAqWUg3xv1r_1urFDzOwtzc9WPqgf2cncF0rOljFY6Geg3xwtbCWtA7_f8lWVwYQ_nSmHDKHcurorRn_rRkZg2l7OWjGmp6RFQVclKZ7O23yCrG2W92u5NiCaCQQUiCjfck-cgtN7pUPWRtUOKF4CjHcOZFAKc_Eg2AOBaKLDtNKrLtkkKthA6JkkfsIukBkI_wmfK0y4zbtAtYPD9xKg0PpM1jUCU2xRryZV9mIorZH8POIA0xgnk1mLdYZPp2eOcnVW44vk0o1zllrpQGxMajcxI1_R8ygwXNXO4ToT3SJM5xP6emZlM2D0WL6ZwgEgctBnGe-NSeIbgXEg6CTqBpghO0GDv-eaIb7pqx5rXq8Y2DQ7lmCktQRvXEKCp_YZxWzb6EO2gTe2VzhbUqIiLEQG6J7nC70xt6QR2Emjktsx9FLLQFTwjTg9Tvn7C4XKc4ma7fwI5uBU_BLQENT9Gd8WCnF5R4qrKkk5OiaXju94Ht6hNxx7YbVc1p8tdz740NkfeqUahmAEjaY2IZrkAO0Aok67d3sh_jB_JPqj0SRksYPU10sptH_HSRUuONgqK5GUQGT7jgEaQZ8RUD0k3_Zbo9bsChulwpBGuL6PSD2kUjNho0PIcUneg5o5QF2KAZL4uW7mt_PvvemLRDx3m9dwVU3isknJsFPM0sCMO6-2TGnBXbLwvWks0wQuTCmbAfmm9eZLaF4osC2Xi6JMPOclfj4p5L1y5uFxTh7hr2okD4eEw6lT_eDciDCm1uKMrKFPd2RurOoMU4oh4pTvWLF4iBk8zvQ7HjH1h_OZaevy4xIW2h29gI7SMs39Bjbl8sEqmCC_UDCXcL9yvaw9g9hyiMdcCcCLVv3k2FxQkP32Sbioh49e3baHDtFT3axy-69GaefS5wTqdx1EHOZFgFRwb-6rl0WYzbUOd9d9A7HqaliIRMGymnh85jl8NLapQOabQD4y9Mm9DxcOtJUo3MDqJz7zou7Uo9vCVvO383ycbLcLYvDGl6yMavkG2OeuOviU9tbiLTNAbXASH5Xxs_5SxNLxPHFhuC6K4LUQStSF4i3wEvjuj9yOMBq9K4pOHyElEP57yT2RyfUqGxwcxJkdmKaBj8aPFKUAs1_9nh_EDBX6e2YXJnYPy2_MoMzN-MckeIRUxbVVYLbqTmGW1e1Aw2N3oRjoW4L3QP_C056YolRVE5mcCQh0PoWLjO0Uj1MflVMIBNLMf9t1Gnk8jjHLmUI20coU5vXyS3kIqoZQ8querR5zm3IDqkG566KWmgoVseWI6ovLWplmMzDQlsPNFOc3_0Hdzhm4AKSW86hT43X4kLKFgzzLLqzJIL67OcBfbr2bs09CWm4aFyeH5dUAVNzgjOGb-WqhJFLO8jYxbhA2dpvEwkTyCoUcDdRN1mdjhTV-dzATw1brot6w_o3OGn_QuULzEB4g5PL0-FKah4p1r4-Jin2XVroE75DyvvfVADGZhTidS0BiLbxHzSMsV6Qy8BGdu3kfC1VuZIqGRwu6e_C97ChHiw4MWx_NHuqEA4Uk4hoKsLANsAtOfY"
+          },
+          {
+            "function_call": {
+              "id": "adk-22add2b1-195a-4083-b434-6d191d048d3c",
+              "args": {
+                "request": "\nHypothesis: An attacker can maliciously manipulate the state of the main Tournament Chooser Table by using the specialized Loop Predictor as an actuator. An attacker crafts loop patterns that alias with a victim's branch addresses in the Chooser Table. By controlling whether their own loops are predicted correctly or incorrectly by the Loop Predictor, the attacker can poison the 2-bit counters in the Chooser Table, forcing it to distrust a more accurate predictor (e.g., TAGE) for the victim's unrelated branches, leading to increased mispredictions for the victim.\n\nNovelty Statement:\n(a) Prior Work: We build upon the established principles of contention-based attacks on branch prediction units, including attacks on tournament predictor chooser/selector tables.\n(b) Difference: The proposed mechanism is a novel cross-structure attack. Unlike prior work that causes direct contention within a chooser table, we use a separate, specialized unit (the 16-entry Loop Predictor) as a tool to indirectly and precisely manipulate the state of chooser entries. The attacker is not just creating noise; they are using the deterministic outcome of their own loops to steer the chooser's decision for a victim's aliased branches.\n(c) Significance: This is not a cosmetic difference. It demonstrates a novel method of indirect control. The attacker is not simply evicting entries, but is leveraging the BPU's own complex logic against itself, using one component to orchestrate a failure in another. This cross-component manipulation is a more sophisticated attack primitive than a direct contention attack on a single structure.\n\nPrior Works Cited: General literature on tournament predictor vulnerabilities.\n\nClaimed Delta: The novelty is the use of the Loop Predictor as a high-precision tool to controllably poison the Tournament Chooser Table, enabling a cross-structure attack rather than a simple, direct contention attack.\n\nITERATION=2\n"
+              },
+              "name": "novelty_critic"
+            }
+          }
+        ],
+        "role": "model"
+      },
+      "finish_reason": "STOP",
+      "usage_metadata": {
+        "cache_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 11808
+          }
+        ],
+        "cached_content_token_count": 11808,
+        "candidates_token_count": 1004,
+        "candidates_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 1004
+          }
+        ],
+        "prompt_token_count": 16095,
+        "prompt_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 16095
+          }
+        ],
+        "thoughts_token_count": 1039,
+        "total_token_count": 18138,
+        "traffic_type": "ON_DEMAND"
+      },
+      "invocation_id": "e-611b1a67-a552-4224-86c3-a0114b0a0bc7",
+      "author": "vulnerability_research_agent",
+      "actions": {
+        "state_delta": {},
+        "artifact_delta": {},
+        "requested_auth_configs": {},
+        "requested_tool_confirmations": {}
+      },
+      "node_info": {
+        "path": "Boom_vulnerability_agent@1/vulnerability_research_agent@1"
+      },
+      "long_running_tool_ids": [],
+      "id": "cc7a0452-0db6-449a-9dfc-a71a48fc832b",
+      "timestamp": 1793114902.6844053,
+      "is_final_response": false
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "function_response": {
+              "id": "adk-22add2b1-195a-4083-b434-6d191d048d3c",
+              "name": "novelty_critic",
+              "response": {
+                "result": "NOT_NOVEL\nITERATION=2\nVERDICT_REASON: The proposed mechanism is a specific instance of a known contention attack on a tournament predictor's chooser table, not a fundamentally new class of cross-structure attack.\n\nThe core of the proposed attack is causing contention in the Tournament Chooser Table by executing attacker code at an address that aliases with a victim's branch. The attacker's goal is to manipulate the 2-bit counter for that aliased entry to force the selection of a suboptimal predictor for the victim. This is the textbook definition of a contention attack on a tournament predictor.\n\nThe claimed novelty is the use of the Loop Predictor as an \"actuator\" to provide \"indirect control.\" This framing is a semantic relabeling of the standard operation of a tournament predictor. By definition, a tournament predictor's chooser table is updated based on the relative success of its constituent predictors (TAGE, Loop, BIM, etc.). Any attacker wanting to manipulate a chooser counter must, by necessity, craft code that makes one predictor appear more or less successful than another for an aliased branch address.\n\nA sophisticated attacker using established techniques could already achieve the claimed \"bidirectional control\" of a chooser counter. They could craft one piece of code for which Predictor A is superior to Predictor B, and a second piece of code for which B is superior to A. By alternating execution of these two gadgets at the aliased address, they can increment or decrement the chooser counter at will.\n\nThe proposed hypothesis merely identifies a new, more efficient gadget for this purpose: a single loop structure whose execution path (completing the loop vs. exiting early) can be varied to make the Loop Predictor appear correct or incorrect. While finding a new, more elegant gadget is a contribution, it does not represent a new fundamental attack mechanism. The attacker capability (bidirectional control of a chooser counter via aliasing) and victim exposure (induced mispredictions) remain identical to what is possible under the existing art of contention attacks. The \"cross-structure\" nature of the attack is not novel; it is an intrinsic feature of all tournament predictors and any attack that targets their arbitration logic."
+              }
+            }
+          }
+        ],
+        "role": "user"
+      },
+      "invocation_id": "e-611b1a67-a552-4224-86c3-a0114b0a0bc7",
+      "author": "vulnerability_research_agent",
+      "actions": {
+        "state_delta": {},
+        "artifact_delta": {},
+        "requested_auth_configs": {},
+        "requested_tool_confirmations": {}
+      },
+      "node_info": {
+        "path": "Boom_vulnerability_agent@1/vulnerability_research_agent@1"
+      },
+      "id": "5b01a8f5-b71c-4340-91c7-2e93e0fd5068",
+      "timestamp": 1793114962.2140293,
+      "is_final_response": false
+    },
+    {
+      "model_version": "gemini-2.5-pro",
+      "content": {
+        "parts": [
+          {
+            "function_call": {
+              "id": "adk-59535edd-5d7c-4786-95f4-329c6ec45fba",
+              "args": {
+                "request": "side channel attack instruction cache MSHR contention"
+              },
+              "name": "Vulnerability_research_agent_google_search_agent"
+            },
+            "thought_signature": "AY89a1_5HUq3nbVTn7iIYFa9t1FGVUgSSC-Sv60sUErtxCL8fwXO_2Pj0zGxfAJn6DDJMsA_9l21nQ0dI5O5xIEKkZeknWMdpVxyMPvSEipSs5ph6EBrWd-_EkDx7HJIKJ6T7e8QI-jmt3tHwJc8J2LT9IeOW3-YAZfP_HNui0E8W3Hjh5MjW1gk7lijryy1SiGd7ZVUtkI4y2c1YnOorkyq1pR50ph7dku8rg2yTgB2TwhY19gxbTDS72YP3Y5Hf8ZHAbUKD2P68SOEonXS_UVcZnehsitHQZruDIflPm3vG_ZPjoxrx45kpf7Hyz3xR-B3h21cFgoa6M0TfEAyUVLtWhmXJUZfgo3T0dppdWo84gA6qB1KVkZS-V8opK35ClI7MAETbbChbzwSw8cvSFj5j9dYAkHbiUOKYYkBa3ob5A1GM8-QWDhIr5GiFZlgLf17yIYQD3tL8Vn69oshMqwz4aTIrFtYD7bZHrq_-1YYEpWt5CDbh4_B0ZT2uHOvJyNCpGtgOjtYN5btj2CYCWdaspnidEkjXsKqZvVjKO4btVFs_UHmOGOuPsaDEY3AdqVEfNNLlgLWU44uNvAhX8_6hXG7TAtmH6bHXtXbHjlg2v92SYeqQE8Y4XT2qmscriyLUADf4PdWXUiH_DWMjclQc46JQVLcC268lwHa6xuLSyXhJh4WKbg4tWC_zfdkpNDKkLZ7Pi_6JihiCwvIUXqYe4OgIpRXeOLoj4M-ImAjih8cSqoHYf-lfQMuMxyTjotcue4bYPGCs8OGSHnHDITs5UsiYwMFJB8YY3xkVgBCBtx1JFmuntN9T05RcVMjR5F86t83rPWHfVkMZPXJf6FTEWHWpJvLeV2yOHUge2O7uzKPtgNJK4j7jwpUGJazDXwCg4m2Wkz5bAZZZYQW5ECetCLBtQPqHX4frLJwcW1CfzExKvQfB0vSlY33KUJQkSk7Rs-8qIrJeo3M9KFhGLhMmJ10fgEsBgoJ_sfVSvxJk1SjLu00hSanTIZSr8gagGRAW-Dm0CzVRBeoF6dLzaV4IK76fYfXi046n6czJFh4Dv_vuSJTvptSvHhtBallVkyF1hWNlC4FEp8kuwi5sPXaN0MFZ9JVi94HpN7lhTqpk7m6Y5RTQclEmFtLmBfUhzFcaOm6uiQmlwWgZpiR5-Vq6HTz_THph--NsjQY2EoQ1xxrCae7qp0LRDk1b-dM1Ef6Ecu1xAAas_vVARKDyeIFahHlvlL3zNghmp-aatvSBBEzEKjdXaXL6be3DI0DOdJKKSZNvKNlLyCDkYSVaDhUtCq6WsES6xwqeMMo8VdT5li2-E8j76zIS00dRkf3KkuAneUcHVqtm69kxEMVgj4pj7ZcxtyPLixcgf_4oLv1hmpZ7S_IlbOLGlNdpjpsIgUgeI-XI8PHVCzYolI4GKeB4kBai0kP23ydlIB9XYQ_zv-nibfqkL1BbX3lC333R7MHi6CtSPo9iiuJg9bcPN1i6gSOmy8N4Ipaoi5xjj65qhiKiDQRyry9kxptd8dYVq4NwHS-i9-5NNWGOwyS8LdW3VCIM41KeyY1Z0bejfD9970NQonv3ZeEvpkHDM4gAccLYx3lV-FuOFMapEYiHcfa2NXfg8ylG9so0pkRxmlAh61MVqpSb9PruFxWn-LGhHi0bPN9QkZl_gvZI4WYwKJ1lmpgXg-DY_DpWmK8Jm6_Is_MitOX6Nz1smelKsYzzdU1x1u3Ai70m_CfsA_Dk227wiLDbG3WbvRw0mKtUc4u6nlztd-K0toL3j42uuzG7B4ZVwAECJZu2U2GATZ6aNBduMM0VgXrW2Vuttw-9jPxDNn-iaKu2pN4qjTmxS1_7J6hZWwdJIY-5ToyVWR6fDTu3j3BacimC4v--M7y9sJtPTuBPP_OcC2XydmmCP6Pjc9h-5VVEM-Z982PmSuQcgu0Vo2e8x6aA3ln1c4KbEH02fMQdRb9-DysV-pJlzydo1S0BLMljnfINSNJt-9tc0qfGXLLCtphpKyq0s3Ft9RwxloJ2JUb00XuwSombB67bJkb1MapUZs1-1T4XCJH0Qx4dQnSbkqi5sHV9HftuctYDuYOIVIMYd8_MiGHf-t6AnFxpA23bsr9KekTPKQRrqRDqDyH16-VGEkvQvTPn2YHUkKI7a_4oBqkasypyv-Ttkg0umgU1GpMdQeYZ5K6erzxFmowzeASG_Zr0ZbT6NO2hNz15z4_adpVgBJvUchfSObnd1H16qO4GKNyLWoHTD74Ojs4YZjc63Wrb_PIt6b714ybuYftBpk4GvV1HBI1w7CFzTJHmMGpwFdJXWjk5LFmIVvCrj4VQloUzi_tzLbO-UA-rR8uzqksiaU36tuavlDUNPE6BFPbWL1iFDrfegobO2uUtEcDTIeabIV8X-2cNpPn0zI8Wy8uPcDdtypOJuL1W5Sg-aTHm97ynl0MAnC_oqTSOyRhQH4wjBy22L8Xfa7l3mjjeTbywMZ1OIZh0RyaxijEE7vVNH3I0GbwKtauVMk5ePYotLSY_fAmxlhr9CkxecyQkKZIdrHT-TBUdadVbYhDoyZNmmccHb0LAtrp-ZFO9XdNxKkNpJPy7SBvioE68MeHYkkOQSC9WXVFiO_um6uNBG21pz3wR5WoP4FxQcR-tEVsAXptfRBgv13s8sD6KAcdhqmKB7AwNVmq3FZzFTABTreIhlPs2our0xZUCseb934xiS70PLmfzNGO6nqQXgm0f5UMxzPhEy0XXAwaViKjFPe3FjI8z2oIyi63mcXlXaLx4x7VpzTrvBynX6d1iQeGEbm2ma8h4SxJ5OyLSszyNMGyshH95GieUwy1RxL0KZeOCIIF2sembm--TgHcj8oV6wJNnBC2eqr4a01Zt8GNzh7sBzLvntnxMnjaZmk0uYcpGoX3f37-inaaGvYhowJpTjNvsK6a_iwy60hmRvD42l3lQl_uLmnEbehRPhK_TTYVtlT9DRVNEi9_7b2bDZ8w4WrhbJy0LiZ-oT-04QijKvLXc5sWTJ__0uckmBHnuzIILtr04AThS5LNwsGECXCm7RWKaaZnn3YGzrSmDlrP5Wb6zm50Ne16rzhV0iXdW4croXfeopQoqFeAxdw03p-YQXIgkQfzDXSGccyWdSVcsWq9W1RM40VY2vAyMlS29TCLYgKSYHSRhqriNetIl50Mpk5Judb-JVeeDYxY8tMzkIBmbaHoMmQfY0mTj_Kio8hVpH4caPkrSmXMwX4YSCHCl40nMIXL_NwTUnzMf3KnoV1o7AyO4uKZcD62rEPcAuE3BldmfW_O3pFsODD2LVxvkzPH7QoRnGjzpCitbmosQjfY3ziu_Zh5BNGYVS2uAcOSPERw_1EM-bX1xo_Yj-ry3fdAZDeZmO-uguhy4lucDsai9C_E_ZeItQLU5K3nWldswXReSOlixbEKnmOfhhv3HS4JhaZYkSoofK_Gi8pM_dmkVe6LJAusg6wfD1He8orDcm4rwEI-a7mPWh-zNLXCHiO6pDkv8EscsoL0Wj3CFrwbjF7oem-Cp60nLQP4rkLcasqq0a4ltMzYDnmX2yXeFDpZl5rANS2hqkfLLxChgJQHYOgzFhqXnSu5S-IGkZYd9-f3wTpE74ONYm5q05NsFwUCh4PNR28Zvq5lzy_OtfwEveApFE2XbMRJJ128rg9LOkMu2IP8lMH1waLUqdS_V9TaqNHHIhDyazeoP8j_9oIogY_a2Bard_W4p6wo9ORHHZu06vAEkrG433d8Ok2SgJtXiH9pbRNVvt18Awz-m8aLOTlQHf0m9KklW9MwO2YzRRZkwwtNRj7skzZijrpEMs-buETzmabWKBWo0usFzrGP4vxayWLwdus4VJwu2V5mpoZ_fj4y9fVhW_u49yuedvsxkymjQiWpGU5DDunsQhWzHdmaTUp-Ki_Oi8e2EZkmnMr5D6FWiRjv9b_yp8U-W5CChWjXyOPbiqD4L_dyyPU9PUpDZxZImdgJ1-FvbDNT7sYa0jY_g1cJvc2V1jWa5z5OFkHIP9oSJbOj0jIUfOdRM8qUDjPWbsn9fbnxQoSxTcdX6Ensyk452j7JiiGPfy6uzTE4t9oB2jGuwiuwvEEZEosSLenyZwG75WFSJPVFtfaudLy8C8N17vlnZPtJMFV3nG80yZfgbST7VrhMItaYr2TEtzKcyBL4bxurH0QIvEboyy03KkZtCVER5XHRailwDIpx0-6ji7GiGRxFp-HbpGN2A12fpfSTAIu2Z9hNnGgQ8tTMqpbJmc1CfT7K-1UF72-dolUkosLsbnGxFyW2DMed-NDdchKAbmMgOymuMgWu_QLA5BWyIKPb7k21PJc330lo-RX_899PJdjWlflLSuvkhNK9hft3R0r5HHEyX5Xv6_ody-0uhkXnhYXopq2uX7vweSdZs3vGBd5VSDy1APZFPnerO4y2AqjrLD0Fsfesh2qvqKWWhq0_AVV0twEDn2gFwZpuVdVGXdXCn-M5iiEPTpOVAq4CUEQEtqwKEUJmnqsuJ78JdgXZDobcThiiyPGlDQLjco6xpz0I-xIQiu_7Jv4cVFifZ-ZGF0suBqT0867i7OPg47zmCJKgAaOZkz4wA5C3CoupNAiTRqWOZ5WeYQlI8zTmfrq9SEVxxNe4bk8bcIyEqwraeUP9Q775AJHNslUjI8xTDc22wOYe-15zQyw9HD7gmw5IWBVPmKDw8FiyLXBAUZg10yRImA1kcWqwebsMBw3ZC4UJshDccLtTniK2FsX_K_VYZv0Jy93-dVSbqyvMnhTQTxha_dkbEhBtsB43J84wAH-bPlOz4_bDg0RxyjSa5W4rsJjHdKEgNeDgiMPyADiDh6yWBjJZakPS3vE0Z0k9V63tCIeGmmMV8heeCGu6ttNDMKfOFxRO_fXdPCO1nNLXP6TO2BtlfcY4Hi0NGShlTDTMNoVfVg5xPE6GqTTvBAZVSU4zVWwRxW0qibxVPFj_sJmMcO3imMX2wGgnGVEpZ7Axtrd8Q4U9FiV2e4xX-64Wrk-blukjiuUL6ipL2f3rsS7JHzXEkRWrFfO8uh-T0roCH5GcWYVcER6JXkB_Q-KcbMi3j0IP7RJ-lJyyluAMb7eVbPMD2lg-S3oG1akfK98nJy5t6RtZeuARBvo2eSZ05z4wNQ0Jm-OKnotdKYFN4alYFCDPseA8lkEGynNYdiZka89r9zMcLTs-QCxZH2x1d3IfEdlA0DjfAdYoBC9RjTTvsLBHfArxrOrPKlinH0OYRuHwHPCF7O0rnzSWvlLxUI3eIQNRUK8gI1BZ8MUS6xB7NNspmIU5VQLCFdjRGV21_XOQUWMC8G5crGGzXdTaihycddZe6r_Mx6fK5Wlvwql3_H-Lhq6quj5OvrgIZw-3WgZhVKK0mJXyd_1w3py8jjsqTWoqHmC5MjFF9xk8jPFBH0BIkMznpJrfRjPxQfAVpCn66n6m9xlF1E_LNAff76-NYBeYuCvuIsCvHXXLpPlON96hHSTGcTCgc6t_Cs5xGY2vi0ob2GGreY-BKUv08iiUrFUFCghwfvJboIzy6WU-mdh96S9ZaqyAjSR3G7tb2sIRoqTDmlxQGqYx0bQiLMora2YTCJ1R1NR821KnrNI0T6A7QcLIuMnzRz1DaqyUex602xDAOYF0ew5dQDR9cB9j8RRgtB8MzxaLyywndHPO-A4GC9Vy_2KjIhuzWrh0uOGdFDmWiP-peDHXVjSapkC96pfmpkeI292UmA7l4x6ViwLt5noQa2eHYbxXnrw0fdCZMo6wEa0fa2VCWuAI7Yx9s7WkXm0g4BKlgE_Ksvd5BdbMDOnBM4gfX_EfNpbvXREmq-nnUaQQQR8HkI737Z9CI1xDrstFfJLNdClteMWzXwnJkz50oT3YRCGtqHfiuWbWXtxP82iJGvCoveP3vCM4ybVfH_L4Dql1IHd8kWUG8TO2-_P2uAep1NEJjverCqnlaGrPpGCaI1A5nJVbg-T4Kc2mqrc-4WTnm_hbbR-4Gx4PYGMWDDtECH6cDMGES564HPc4ZCkWPPWoO6B1WbLUi0osVBjWS0B2z9hBvZKft48s7P162u5KztOw8CdSifxmiZE2JYf9VP2v1p0jPCAM2ghl_A9Pn5bRKc-306rnI87fso5B7LU="
+          }
+        ],
+        "role": "model"
+      },
+      "finish_reason": "STOP",
+      "usage_metadata": {
+        "candidates_token_count": 32,
+        "candidates_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 32
+          }
+        ],
+        "prompt_token_count": 18570,
+        "prompt_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 18570
+          }
+        ],
+        "thoughts_token_count": 1124,
+        "total_token_count": 19726,
+        "traffic_type": "ON_DEMAND"
+      },
+      "invocation_id": "e-611b1a67-a552-4224-86c3-a0114b0a0bc7",
+      "author": "vulnerability_research_agent",
+      "actions": {
+        "state_delta": {},
+        "artifact_delta": {},
+        "requested_auth_configs": {},
+        "requested_tool_confirmations": {}
+      },
+      "node_info": {
+        "path": "Boom_vulnerability_agent@1/vulnerability_research_agent@1"
+      },
+      "long_running_tool_ids": [],
+      "id": "e5339881-4bc9-4cf2-ad4a-7610bd22eaa5",
+      "timestamp": 1793114962.2177813,
+      "is_final_response": false
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "function_response": {
+              "id": "adk-59535edd-5d7c-4786-95f4-329c6ec45fba",
+              "name": "Vulnerability_research_agent_google_search_agent",
+              "response": {
+                "result": "Side-channel attacks exploiting instruction cache MSHR (Miss Status Handling Register) contention leverage subtle timing variations in a processor's microarchitecture to infer sensitive information. MSHRs are vital components in modern high-performance processors, responsible for managing cache misses and consolidating multiple requests for the same cache line. When there is contention for these resources, even for brief periods, it can create an observable side channel.\n\nOne prominent example of such an attack is \"ResidualEvil.\" This Spectre-v1-style disclosure primitive exploits short-lived contention in MSHRs (or similar miss-tracking resources) after speculative execution is squashed. The attack works by encoding a secret bit through transient miss bursts\u2014either coalescing or non-coalescing\u2014and then decoding this information using a fixed, secret-independent post-squash probe. This method has demonstrated high validation pass rates (90-100%) and median bit accuracy (94.5-100%) across various x86 and Arm processors, with data extraction rates ranging from 51.9 to 391.9 bits per second.\n\nIn the broader context of side-channel attacks, the instruction cache itself can be a target. Attackers can monitor cache access patterns to deduce information about a victim's execution, such as which instructions have been run. This is often achieved through timing attacks, where differences in memory access latency reveal whether data (or instructions) are present in the cache or had to be fetched from slower memory. The principle relies on the fact that accessing infrequently used information, which is not in the cache, incurs a significant timing penalty. Attacks like Prime+Probe, Flush+Reload, and Evict+Time are common techniques used to exploit cache-based side channels.\n\nWhile instruction caches are not always explicitly linked to MSHR contention in all discussions of side-channel attacks, the \"ResidualEvil\" attack specifically demonstrates how contention in miss-tracking resources, which are essential for handling instruction cache misses, can be a potent source of information leakage in transient execution attacks."
+              }
+            }
+          }
+        ],
+        "role": "user"
+      },
+      "invocation_id": "e-611b1a67-a552-4224-86c3-a0114b0a0bc7",
+      "author": "vulnerability_research_agent",
+      "actions": {
+        "state_delta": {},
+        "artifact_delta": {},
+        "requested_auth_configs": {},
+        "requested_tool_confirmations": {}
+      },
+      "node_info": {
+        "path": "Boom_vulnerability_agent@1/vulnerability_research_agent@1"
+      },
+      "id": "5995d7a0-a779-4a0b-8648-633ae8e58ae3",
+      "timestamp": 1793114983.6254413,
+      "is_final_response": false
+    },
+    {
+      "model_version": "gemini-2.5-pro",
+      "content": {
+        "parts": [
+          {
+            "text": "## EXPLORER STARTING POINT\nThe Explorer report recommended starting with the **Loop Predictor**. This was chosen due to its high novelty risk, small size (16 entries), and stateful design (`age_counter`, `conf_counter`), making it an excellent candidate for a contention-based side channel not covered by the provided prior art.\n\n## CRITIC LOG\nCRITIC_LOG[1]: NOT_NOVEL | The proposed mechanism is a standard contention-based (Prime+Probe) side channel applied to a new buffer, which does not represent a novel attack primitive.\nCRITIC_LOG[1]: EXTENSION_ATTEMPT | Changed from a simple contention on the Loop Predictor to a cross-structure attack where manipulating the Loop Predictor's state is used to poison the Tournament Chooser Table.\nCRITIC_LOG[2]: NOT_NOVEL | The proposed mechanism is a specific instance of a known contention attack on a tournament predictor's chooser table, not a fundamentally new class of cross-structure attack.\nCRITIC_LOG[2]: FULL_REVISION | moved to I-Cache MSHR Bottleneck\n\n## NOVELTY STATEMENT\n*   **(a) which specific prior works you are building on:** We build on the principle of resource contention side channels, where an attacker monopolizes a shared microarchitectural resource to degrade a victim's performance. We also acknowledge prior work like `ResidualEvil` that has identified MSHRs as a source of information leakage, specifically in the context of transient execution attacks.\n\n*   **(b) exactly what is different about your proposed mechanism, target, or finding:** Our proposed mechanism is a non-speculative, architectural resource exhaustion attack, not a transient execution attack. It specifically weaponizes the design asymmetry in the BOOM core where the I-Cache has only **one** MSHR versus eight for the D-Cache. The attack works by intentionally creating a long-latency I-Cache miss (one that also misses the I-TLB, forcing a full page table walk) to occupy this single MSHR for a prolonged period, causing a persistent stall of the entire instruction fetch frontend.\n\n*   **(c) why that difference is not cosmetic:** The difference is fundamental. We are not exploiting a transient, post-squash state to leak a secret bit (as in `ResidualEvil`). We are creating a persistent, architectural denial-of-service on the instruction fetch mechanism. This allows an attacker to amplify the timing of other events, creating a powerful timing channel, rather than leaking data directly. The attack is contingent on the specific, documented hardware parameter (`I-Cache nMSHRs = 1`), making it a concrete, implementation-specific vulnerability, not an application of a general theory.\n\n## NOVELTY VERDICT\n*The `novelty_critic` has not yet been called on the revised hypothesis.*\n\n## FROZEN HYPOTHESIS\n*The hypothesis is not yet frozen, pending review from the `novelty_critic`.*\n\n## APPLICABILITY AND IMPLEMENTATION PLAN\n*The plan is not yet finalized, pending a NOVEL verdict.*\n\n",
+            "thought_signature": "AY89a19N5VjTBbBs05jDeBNnelV2I4RQGq8RgzFvOoaJooDMDI2VELv_IiUYgJYzRamnyuRfENuKM4mPnii7oBGrB5tMMhrn9-EBayxXiqeyhdUEbGZ2HqCo_6Pe9lWW3bW1CCIWgqOCBmkRdOOKtsMvTTYtYzaXlherbibpKlhBiS_3p519dl_FCBUlAq6LNikZCFhPZe5_Ew-QfG_v17hDBtflkRM75qYFGAQBEIIdVdOhdh6QBw2__UaT2TA5KE4ngCcfC3mRdMxDkBoQuNRnHp3CVUPia3voKEL1I--TDkyfcfSZIEnjPFalxy9bAaYWb-GNGw8aMcgOEfldAFcFuJhXsjsDAH9IKt59GVr29uarEkUumTbYSGE7a8iUcmPYqWOnVfjrmosU-QNWDSUV7ehRb5Jr2K4IwaEGxaoZ1KrHuD1tqZBJJ4BDzq4lZqRC_PJ6sOGlAwlqkFTLBtTIL7VKvTFnu_Bz1xeYJDwvGWIu1Z1FI4lqx63vMAuoTtTlL2jhDpcECRcDyKIhU60yQqSdTyzO1f3OQRtgReB0HFx2-wUSyFEQ_1_S-MR5J3cG_J16lVgUXkEMOyDsDVkhMDlzTcl_i0-C6hP3ZnhSkvzAFTbhnqR-slCzShxctEhFnjMl58bIvymMoUTYj0sP1v0jcyB0Geuwk_K2IGKPdIovsmilNiQjop03Bt0PLXYIN_-OmXUEKggteaqrV4mQTRTFsxjl5wWiTIFdUZQ0mBu3sEMVHCngglW-wLUbzitGT_Rf1iAgnZ5f32FUycc6d7-nC66Vc2SCygylDrFM686g04Ots9Ke6HO3_EibUUA2Ope5sCET1Z5HV3LL6YeFkCLrSptxizH1o6hbQc4EOkgUXlqNEz2jJU0Y1JBnR6QnaVd7oGJt5PXWKa7dpjW2qzIqCNC9hhNexhyX37kHEyhR1jubjRCmK38hnisfdhQ1K6UC78H7ouHNY9rHAPj4JhmaX6R4w6N-2TZXMCatrCxFLhSUpDDU2bGDI_rv1qK7SMY9VI-XbejKBv1H8iKcqCbqOX9bjHHtKOidOKQ46GSXbVExPNaecQT5HYx-NJPHpysnhKnDzW5knFawipsJLp6JZLgMjtEJp9ryxo4JUTD7mTVbPqeGd8tFOmZRk99FQ3BRfX5SOwljE0tKiX5Je09MGGfUHsZKenLICTND7GQ3I5qrMacWv-Zkk4M_RH-itfhHScVRW-TPOdBhehyN_55wVdLu8p_srPZ0ZkWNMhZ8vW-3MFH38Vkr0bU0cIkeE84_PBX-zXpWHrqT2P_LnDuTpST8QOdXnNbJ83Lf_luFjBYE15wjgsBv6-Dc5_CDdy3X6FgXB6JcZa9gzShkEI1UBHnQvMIhx1FVTme1rYupbrmDugj9mDD0nnaxzHQC9nMtmdaVubuG80zJRWb59oJHJh20DYoVsAUOysZgAB2Tpofn6pJqHaWZ6kZGaSyZW3JwuydN5SSrUUcnw9zYcuqSOUgEHiCf6tn9WG9Vq7MA8lUbz6MZKSsHmrmuYe6wsropSSGg896skZG8EjREuWdgJklQOk_qFCqMcg3WT-Si3_gHTj4xCKaJTLiTnUXO4YuZCy7xMRUnHQXIFzAg4871-TaHrRuINFP3bQAJlYMJszJgH5w7zE9vzURQw4h_3-VHDrkcpK1WCB_Llv4v4xt3H_TIwTpel9eKGvWGJhsEX-IlzSbPyz72KFKL17J69S0IDvsbvdbOMfGQ6YxChQomvuSX5HXibS-5yytXq7_6XS530RxvZ05I2BRVCBNJ2YQn2q-LhDjRmr2vWkbNn2AI1Fi0agZE9QYq1-wF5DBAm99xgnBFDwHF-Kpc9Xx5RnMuY_aUKhlIYoXYgNV0LfOzt_9-jDQ_VAl0vBWPb7uasTzxfsUw0osMUay70txiNehsj8G4COqu2kjITiyJk7-IbWHa1cpbcShh-dPl96s0UpSFwlrXdBfFJ-s2jHGUyehGga5_TAihb3-_1E3-qZcrsPdGRXYS2P9om77oRfDkvzDvcazRBtzFPOVJKhnw8voaR9ZrOaqcXlo0rhK-baCZRNVndRtmsWkVfJMGw2AWVdjbFLpLWGjOuuIImJXFP2lmZmHiVaX_2nSbRGMDarQVzeKr5Qr4WU0oKjAcV5oS1hPeMLp2VSf2PSGooVq3pAAms99aFcwmJ1_Z2TVb51LOW6tNgLyUo0FqIyjDroFTpH44Q_Iuinu4wIAhn2TRLdEPLJkgptfwAyR58yr0KKX5MRePrT4rzgHoOCe7k0n2AKRuSyNLdtuM16sK2MCXoMPTUJpl8tc83jWFCe1ZR8vm1Rizj43gGnwkiPCV20y98gk_sHtk0OMzi51INACAcAj9skNSaEI90n9qckNFQCkporvzpOLCcffNi2OKHBm49YWC8THfxIgm5f7jtvoDnM18taD5h-Eu9tMKRZWxrXF7NTxbEDGeMUiH0CI_EKpwW4ilJxCL9tvCoeO6nW6FzVuIDCgEtvh28kYHYMrFg-heweNEnAUPSm6PDT5tBhSwA8HOIhpDX11hbQBVinpNJl8y105LgaX-tFMSdKN2U5IvHOcTmi3kkUTJGyDCo85h23egp2i2_e0xb_SiL0FSet4znmVEHMFILBZmumqhqQsCBgh8tED-qP5RoxRGNn1WSQs0HVk6L3xlv0WhS3B0zWOB3YSfdVgXKzwmd36JJds1_UjiLoRFWpZnGg6-T5-EC2pS-oXWMMUd1HzX_4kRjolyGLMxkVS3_5gUzD-aWJ81BZEtfOQ08-791eDBN0HgBJEcXaU7e2OR_wHzZR9AXN4IF9grO3lRfoH8T6T4bH_3wLoQqant6QNxdqBF0sTdgj0FgxAqknNdy4dtPbPKZcK5t_ImTw41WmbT3nucDs7uP4-eb2F_oH_lS5N66f-TIOztM-8KR85GZKQiIk0KE61ZQaAOqjqZkWZmM9GahBR85UqDCbgAUxJse0XVS7_V2s0GgVbMlmO2ZRUH4Q8OXR4W35NbAwn8XpNYgpAxnQaMaV9PEQjErfEbe3fWbyJahr6KrBnJwuy-F1I1CKWCM33nRB2uDpEZVlWsqJCajwYFMaLE0r0IEbOByJxvs6mZrUQBJAZQJRnCctYXrw9OuTSY8zZE2yRYSxYhvOcXTkDRuqj57vudEndjd6lBRPt_mZvnpMdtKBGrtlqbj7gSCn5RpM3pA21-YlRQDxxg7o2xhdC3llbeqJxhoxIZGsAtDDNIdcZB4f9vh8PSDn8v9BFnaSNFFv-rbxX37x2x3BsMFS7gDl0-HNziQ2MDJFMiXuqACGQkDg3wHUZjKVFHoYinMcnexdnpvHWvKbZhJwvvmn1I1JzgdPQ54gUt5DvnSnfi7NIL9aC0qRxmkzt29PGKBV48QSAGizEXsp6iC6873c4b3umYAvUEL-86-JpU0qgjUa0LRodSTmxizQ95y3T-0Lg6P8UUY_wVXQpkSN46JFt7GazwMvWjiGRYAlcQWordc-6houT9qQ-2hsZfbuczRGUx-DX4ejivfwSSVUJzlplD2QojNCjHN3Zy4kWtj6bVmNY9D2eQURuMSqao2JWCVfukni6y0MCk-c9jAmn1P4WRYnz478DQRuimZSiYOm6IZoNdm5qdbRQiWOC73kMBOBberLnxZhf2JWMzeR-t9lP69utw-CJiFMCtY-Nze9UKW2onthEg6Be0_EDo7BsMIsO92W3Y-qTHh6xVka8Dpi9HN-XJJr5FLFfBHvVDfxtUpkli9g9EvXpghqt2zW7unXumvRbM5GkRJ-U5T1aMmglKGsyuCYN8Ty2YLewmXQjHLlFfW6NkcHjBK_2vU2ZxAMMqKn4Ql-O5Sg0vlq0lpb0FVGJAAukbWGP2rtgVHhi7DnDmL0YshrkQ78F3rzZv5KklyAHGhvIeqhvdG2UoKFmtWf7K729IBU1N1Q_UZOG5kvym_2Ji3jItIZwW-PscFCfrSubS4QdO-hsMvCB4W1IGZusIXWoiv7Rzdtujup__XiRzmdLD7kRMTOG_LrW6AGONdhchPPPZhTg_7UMfFQ1KE7w7ZYhcVJPrH1WJd6LC4x4L3bGfqbSPwFDbVhry4eXnGIV3eDqTwUnRrdpZPzPnnkTbaQoF5b6r90HNiGVgNfDMDvo2mwADP3inpdyWInzZxYhcLagxJk_uv2ultgkU9acr_Rnko0grtk55EDeV3PqF7Q8cXcVRfB-zcEWrqFM2fs2hV74g1Rz2QlRqV09HWY3PoYsWGPYesgsphrOogCwkLe5CLUWfoiov7DQWwRbzE2kihavB3l6zbYDm8nHeWhphxIKQLw6q0Kr2BWlh-MerSlT7M1y6JSoFgQvcNGRwPXAf04tywu4jp0UUSEQ2dorfOR7HzA2xCtEFucVdGt10auxBZym5bBtyzg3AjUCbJr43DL6-eqYEhHStHMfFL4PIeqhiTr4sI5CI0UfKcAn6noJ2sfY-GgDcn7Nu-xycjWsvjlwYHHXn_wMJrPEYprIjCO9cdPNHRR4peBqiMxIDSu07SJR3WkEkOJYHydVuImGj015jzmsKCs7r74ZvAwvmMqyioH5kq6BhbgazRSc3ah0SYfvwKI23RAzHldsycyUCj5QgHzw4EwBkivUquBzQzjdDm4SXZ59gLbx83OiIhUN_YtoCTGzaCcff1K_pTYLwGIN507_NNPm8yuIpBJhRHTfg8j0WGWNnwHtUSVX0NnLZYUwLN6nsBZgIQoVK2iGm6ItXYEz00Hsa52DpVfrKdq8oHmgLOIJF3Cr8uUM5Vrri2QiOZcX9tU_lfhyAL8LaBawBUccAZiXyXfeZfpwfvmWY8K6HL58TJCAa3N0PHzRpGdwXH-bAj5E5RiQO3I1RXGePuQ=="
+          },
+          {
+            "function_call": {
+              "id": "adk-cf5c23d4-0ad9-4ffa-8445-89f07a00eb89",
+              "args": {
+                "request": "\nHypothesis: An attacker can cause a persistent denial-of-service on a BOOM core's instruction fetch frontend by exploiting the architectural bottleneck of the single I-Cache MSHR. By generating a continuous stream of I-Cache misses that also miss the I-TLB, the attacker can occupy the lone MSHR with long-latency page table walks. This frontend stall can be used as a timing amplification primitive to measure other system events, such as victim process activity.\n\nNovelty Statement:\n(a) Prior Work: We build on the principle of resource contention side channels and acknowledge prior work on MSHR contention in transient execution attacks (e.g., ResidualEvil).\n(b) Difference: Our proposed mechanism is a non-speculative, architectural resource exhaustion attack that weaponizes the specific I-Cache nMSHRs=1 vs D-Cache nMSHRs=8 design asymmetry in the BOOM core. The goal is to create a persistent, measurable frontend stall, not to leak data via transient execution.\n(c) Significance: This is a fundamentally different class of attack from transient execution exploits. It creates a timing amplification channel, not a data disclosure gadget. The novelty lies in identifying and weaponizing the prolonged architectural stall caused by the interaction between the single I-Cache MSHR, an I-TLB miss, and a full page table walk, a mechanism not described in prior art.\n\nPrior Works Cited: Literature on resource contention channels; ResidualEvil.\n\nClaimed Delta: The novelty is the exploitation of the architectural I-Cache MSHR bottleneck (nMSHRs=1) to create a persistent, non-speculative frontend stall as a timing amplification primitive.\n\nITERATION=3\n"
+              },
+              "name": "novelty_critic"
+            }
+          }
+        ],
+        "role": "model"
+      },
+      "finish_reason": "STOP",
+      "usage_metadata": {
+        "cache_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 15799
+          }
+        ],
+        "cached_content_token_count": 15799,
+        "candidates_token_count": 1041,
+        "candidates_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 1041
+          }
+        ],
+        "prompt_token_count": 20152,
+        "prompt_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 20152
+          }
+        ],
+        "thoughts_token_count": 785,
+        "total_token_count": 21978,
+        "traffic_type": "ON_DEMAND"
+      },
+      "invocation_id": "e-611b1a67-a552-4224-86c3-a0114b0a0bc7",
+      "author": "vulnerability_research_agent",
+      "actions": {
+        "state_delta": {},
+        "artifact_delta": {},
+        "requested_auth_configs": {},
+        "requested_tool_confirmations": {}
+      },
+      "node_info": {
+        "path": "Boom_vulnerability_agent@1/vulnerability_research_agent@1"
+      },
+      "long_running_tool_ids": [],
+      "id": "c316ca18-3821-4282-9879-19a8e78109f1",
+      "timestamp": 1793114983.6291668,
+      "is_final_response": false
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "function_response": {
+              "id": "adk-cf5c23d4-0ad9-4ffa-8445-89f07a00eb89",
+              "name": "novelty_critic",
+              "response": {
+                "result": "NOVEL\nITERATION=3\nVERDICT_REASON=The proposed mechanism exploits a non-obvious, persistent architectural stall caused by the cross-component interaction of an I-TLB miss, a page table walk, and the monopolization of the single I-Cache MSHR, which differs fundamentally from transient MSHR contention attacks.\n\nThe argument for non-novelty would be that this is just another form of resource contention, a well-known attack class. However, this view is too simplistic and misses the core contribution.\n\n1.  **Persistent vs. Transient Mechanism:** The cited prior art, such as ResidualEvil, focuses on MSHR contention within a transient execution window to leak data. The proposed mechanism is entirely different; it creates a *persistent, architectural* stall. The machine state is not rolled back. This is a crucial distinction, as defenses against speculative execution (e.g., `lfence`, speculation barriers) would be completely ineffective against this attack. The attack leverages the correct, architecturally-defined behavior of the processor, which happens to have a security-relevant side effect.\n\n2.  **Novel Interaction Chain:** The novelty is not merely in identifying that MSHRs can be a bottleneck. It is in identifying the specific, non-obvious interaction chain: an instruction fetch that misses the I-TLB initiates a page table walk (PTW), and due to the specific BOOM design (nMSHRs=1 for the I-Cache), this single I-Cache MSHR remains occupied for the *entire duration* of the PTW. A PTW involves multiple data-side memory accesses and can take hundreds or thousands of cycles. The insight that a long-latency, data-side operation (the PTW) creates a prolonged, architectural stall on the *instruction fetch* side by holding its single MSHR is a specific and novel microarchitectural vulnerability discovery.\n\n3.  **Attack Primitive (Timing Amplification vs. Data Leakage):** The goal here is not to leak secret data held in registers or cache, but to create a powerful timing amplification primitive. By triggering a long, predictable stall, the attacker creates a very clear signal that can be used to measure other system activities with high precision. This shifts the purpose from a confidentiality attack to an availability attack (DoS on the frontend) that doubles as a new measurement primitive for other timing channels.\n\nBecause the mechanism (persistent architectural stall), the underlying microarchitectural flaw (I-TLB miss causing prolonged I-MSHR occupancy via PTW), and the resulting primitive (timing amplification) are distinct from prior work on transient MSHR contention, the hypothesis is NOVEL. A defender would need to employ microarchitectural changes (e.g., adding I-Cache MSHRs, decoupling the PTW from holding the MSHR) rather than existing software-based transient execution mitigations."
+              }
+            }
+          }
+        ],
+        "role": "user"
+      },
+      "invocation_id": "e-611b1a67-a552-4224-86c3-a0114b0a0bc7",
+      "author": "vulnerability_research_agent",
+      "actions": {
+        "state_delta": {},
+        "artifact_delta": {},
+        "requested_auth_configs": {},
+        "requested_tool_confirmations": {}
+      },
+      "node_info": {
+        "path": "Boom_vulnerability_agent@1/vulnerability_research_agent@1"
+      },
+      "id": "4e7ea969-0118-4f29-9780-198f9bf86e3b",
+      "timestamp": 1793115032.8417933,
+      "is_final_response": false
+    },
+    {
+      "model_version": "gemini-2.5-pro",
+      "content": {
+        "parts": [
+          {
+            "text": "## EXPLORER STARTING POINT\nThe investigation began with the **Loop Predictor**, as recommended by the EXPLORER ATTACK SURFACE REPORT. This structure was prioritized due to its high novelty potential, stemming from its small 16-entry capacity and unique stateful design (including `age_counter` and `conf_counter` fields). These characteristics made it a prime candidate for a contention-based side channel that was not covered in the provided list of known vulnerabilities or inconclusive hypotheses.\n\n## CRITIC LOG\n*   CRITIC_LOG[1]: NOT_NOVEL | The proposed mechanism is a standard contention-based (Prime+Probe) side channel applied to a new buffer, which does not represent a novel attack primitive.\n*   CRITIC_LOG[1]: EXTENSION_ATTEMPT | Changed from a simple contention on the Loop Predictor to a cross-structure attack where manipulating the Loop Predictor's state is used to poison the Tournament Chooser Table.\n*   CRITIC_LOG[2]: NOT_NOVEL | The proposed mechanism is a specific instance of a known contention attack on a tournament predictor's chooser table, not a fundamentally new class of cross-structure attack.\n*   CRITIC_LOG[2]: FULL_REVISION | moved to I-Cache MSHR Bottleneck\n*   CRITIC_LOG[3]: NOVEL | The proposed mechanism exploits a non-obvious, persistent architectural stall caused by the cross-component interaction of an I-TLB miss, a page table walk, and the monopolization of the single I-Cache MSHR, which differs fundamentally from transient MSHR contention attacks.\n\n## NOVELTY STATEMENT\n*   **(a) which specific prior works you are building on:** We build on the principle of resource contention side channels, where an attacker monopolizes a shared microarchitectural resource to degrade a victim's performance. We also acknowledge prior work like `ResidualEvil` that has identified MSHRs as a source of information leakage, specifically in the context of transient execution attacks.\n\n*   **(b) exactly what is different about your proposed mechanism, target, or finding:** Our proposed mechanism is a non-speculative, architectural resource exhaustion attack that weaponizes the specific I-Cache `nMSHRs=1` vs D-Cache `nMSHRs=8` design asymmetry in the BOOM core. The attack works by intentionally creating a long-latency I-Cache miss (one that also misses the I-TLB, forcing a full page table walk) to occupy this single MSHR for a prolonged period, causing a persistent stall of the entire instruction fetch frontend.\n\n*   **(c) why that difference is not cosmetic:** This is a fundamentally different class of attack from transient execution exploits. It creates a timing amplification channel, not a data disclosure gadget. The novelty lies in identifying and weaponizing the prolonged architectural stall caused by the interaction between the single I-Cache MSHR, an I-TLB miss, and a full page table walk, a mechanism not described in prior art.\n\n## NOVELTY VERDICT\n**NOVEL**\n\n**VERDICT_REASON:** The proposed mechanism exploits a non-obvious, persistent architectural stall caused by the cross-component interaction of an I-TLB miss, a page table walk, and the monopolization of the single I-Cache MSHR, which differs fundamentally from transient MSHR contention attacks. The novelty is justified on three points:\n1.  **Persistent vs. Transient Mechanism:** The attack creates a persistent, architectural stall, making defenses against speculative execution ineffective.\n2.  **Novel Interaction Chain:** The vulnerability lies in the specific, non-obvious interaction where a data-side PTW operation creates a prolonged stall on the instruction-fetch side by holding the single I-Cache MSHR.\n3.  **Attack Primitive (Timing Amplification vs. Data Leakage):** The goal is to create a powerful timing amplification primitive, which is distinct from a direct data leakage gadget.\n\n## FROZEN HYPOTHESIS\n*   **Cited Vulnerability Specification:** I-Cache MSHR Saturation (IMS-SAT)\n*   **Frozen Hypothesis:** An attacker on a single BOOM core can create a persistent, architectural denial-of-service on the core's instruction fetch pipeline. By executing code that generates a continuous stream of I-Cache misses to virtual addresses that are also not in the I-TLB, the attacker can monopolize the single I-Cache MSHR. The MSHR remains occupied for the entire duration of the subsequent, long-latency page table walks, stalling the frontend and preventing any other process (including higher-privilege ones) from fetching new instructions. This powerful stall primitive can be used as a timing amplification channel to conduct measurements of other system events.\n*   **Success Criteria:**\n    1.  An attacker process must be able to create a list of virtual addresses that are uncached and untranslated.\n    2.  By jumping to these addresses in a loop, the attacker must be able to induce a measurable increase in the execution time of a separate, co-located victim process.\n    3.  The observed slowdown in the victim must be significantly greater than the slowdown observed from a simple I-Cache miss attack that hits in the I-TLB, demonstrating that the amplification comes from the PTW interaction.\n*   **Unresolved Questions:**\n    1.  What is the precise cycle cost of a full page table walk in this configuration, and how does it correlate to the observed victim slowdown?\n    2.  How does system memory layout and L2 cache state affect the reliability and duration of the stall?\n    3.  Can this primitive be used to amplify a known, weaker side channel into a practical exploit?\n\n## APPLICABILITY AND IMPLEMENTATION PLAN\n*   **Applicability to BOOM:** This hypothesis is directly applicable to the target BOOM configuration. It is based on specific, documented hardware parameters (`I-Cache nMSHRs = 1`, `D-Cache nMSHRs = 8`) and the standard behavior of its virtual memory subsystem (I-TLB miss triggering a PTW). The vulnerability is an emergent property of the interaction between these components.\n\n*   **Implementation Plan for `vulnerability_generator`:**\n    1.  **Attacker Program:**\n        *   Allocate a large region of memory.\n        *   Unmap most of this memory using `sfence.vma` or by manipulating page table entries to ensure subsequent accesses will miss in the TLB.\n        *   Create a \"gadget\" that consists of a series of indirect jumps to addresses within this unmapped region.\n        *   Wrap this gadget in a loop to create a continuous stream of I-Cache and I-TLB misses.\n    2.  **Victim Program:**\n        *   A simple program that performs a fixed amount of work (e.g., a loop of integer operations) and measures its own execution time using `rdcycle`.\n    3.  **Experiment Flow:**\n        *   **Run 1 (Control):** Execute the victim program alone to establish a baseline execution time.\n        *   **Run 2 (Experiment):** Execute the victim program and the attacker program concurrently on the same core.\n        *   **Analysis:** Compare the victim's execution time from Run 1 and Run 2. Success is achieved if the time in Run 2 is substantially and predictably longer than in Run 1, confirming the frontend stall.\n\n",
+            "thought_signature": "AY89a18Fk6-oYSRk5y1vNn4-htjMMiuGwhipZfqgPt0Btya1kAEZlXcq18OiQs77KsApk8KwdQHHQh83_oFbMyy_PQF1u4cF4C_L0Ydeok3fCKEjpU_wD_qHIYcXQpApyJLvxH8rJ7CEMR8dbL_UHQZJE0Eck_vXJvJto8lNR3-X4g9pz8Qatb_HnAFqxCFWfnfb8-PlUKMU-uGn1aTb8TzMb8LtdpEJthCDHysAMJ7vtawdF74jTYXYRkW_Kjav_7aA0b6yuAJM88VUhuHmXWKKY_wyReL_IU9Pwa7C6agLab6SGkUo7WB8Ag9mmAma9Ho5Uox3Y-T51xgQ76_2_OkMn0jb-wSye3049lHrgPkKPgCCSpJSkf07Kchoz7MceXrjFkObVMzbmiB-x5KYUTPP-v4LN0H6ZIAdQFGDIjtDGNbuopkLbcViS-sf--a8loSDzxhVdgxNBAXjf6sYZeQyHBwjZEIfcsi3euuVS9KtRVxi2QzrVBhqGMsc0_1wOq8xMWmHB3kiEqwpPTSZRUGJ2tUO2EjHi65Boj8cVXTM9oaJwm3j19aKuSCyjPbS1CBYQtdH0jGXWIDQbiDr3dJR_5i9Adl9S5PkgrASmMXcxZKe-Gc2pzLd2GvnoRT4iqE87phYNPwB7dV6nxCF75YrVz2NJDyRLIxMe3bx6L7awg5cb95Ls_4lWzXaHaeqqADvBIkvDMbt1ziM0msQg-vCvE6G2dBeSKRsiDUrwO05omz3AwBYUi6ywxQKVDUVrqL9gy6bkiSVEM46Kbc9DA9rca9QZAq2k_ftZ1F2MoBy-kCc9ZiRj7A295-Nz3QsLCcZf8UJLvdD7XPFM5TBF_AaltPgt0IIe9CCEz7xzauYw3OOqQttUvzKf9ACfACh0FJw2z45QRQQcxnpIpqINnoQSD4iG4_LCJj103EMCTRw-53ffyZeMsfOMcDKDBQLaEbRCAzl6pTnY628I65KpdxYUUM_jz7zJDHnD3NGOQt1Td2fIGrb-SZV_spGGFJ-vdfB_Z8fPolsNlxR-DJMwH-xC1E4Xbknr5uhPw4K_XyYYYhSYXG8VwoxInGPGWjbkvyWLblcUZ83xlFY0dFRLTT-rAzTYqliWylkFi37R36fjz2q6zjsdDaDKW0TL8_hIach4pVsczssDrNS9VPI1_zTHEhvYFT4J9o9nBBnCt16R7tV-lg5w-PUR-zN84GQQ7jayHElXIAG4Ej8AFo_t8XoObG6qozkBJulDyKJPcXcfK6JGrJcJVr4xvjD1nm6leY8-mJ2jl5X_N6FW8jdpvOucn_Hb3IhdHKyJrCQZtRBAHYtDXK7df8Xa-7lX3G5vSYyO8obS9yLvhccyFLZTVnxhFdKeLszr5YiTs9Pax-gL2zFiLuOLyf4IfU6LREaa3Qp8vLr0eenHSL8SprzD01f_pz0124Dc3jW5CrhL7tEG40Q78ZJmO1rTODMB-BSUhhTdU3nApT4R4J3LBSfR6orFQWLjG84ZWD20kbdym2-ITdXofd_DiqCFRFhSAvmSXo--4JXD_Yu9bnOXglXYf31yQ6Mm5pk3wwRmyD9xlsgvX4cLhCujUaOceP5OuAt8JYcn4ZyIm4B4p-1LPhhQYXhxOoi_62jx1j6QxhbJBADwZZSmtIzKtHgT4JO1ob90y3pjBmLfpOLfZiZWIuFI9qSLSuZOIKOnW0UfSQj_-rwA_nF3JZq1mQrTZxPzEz5GizF3Li8QQve6W5N6dKSVmIP3y5RXZoeNqKY5hf8A4tHUQwShNv6bsRW0AW2Rm2nuXtDW24I7MAJTuiex9Vslduths5Tl8E2jRAlTjZHPpHxiZHEbrLY6ngvUlc2RWSGPpLlr-KpWeXZednnmaROkwQt7Hp0Viiw7Za7Pf5sameHIgTa4N713MAG7KpJg0-obPvecolXRnewi9hoNxcOBxP9vUBb4sBGuth_sqAIqOJSzufA1RZwpxN508n5KSob2pl_Bc-2VnLeUytTSCE4RkoZ-qCMzWudtUg9ZFdma1czt_yAzmK7Y0LXh69Dx9jb7X6B4-xsfTNcxUjTscChAumgT-hOEp8Cf9QXiKe70g9cy1T_9VNVDRx_MbwkZ4wK9Qd0r_QTHs5hmBZXSywtxUoH_GlQsxgD_MvmMK-SlF_24GcyjAkf2iajKdFi3R6QJ4TQfgsurn50kfvn66gvJIteONVXM_WVFrUlP_yBYpRYcsUEyQHpgzVml6ybLaQ14vkG4pIipW5OHU7FVKgZG3xVhxIIi2EnWfN9xptiFsewbzFKwlquVyQFMXcGqne1Gx2-XingqQ5wUmJIjOnO_NE9-Uevt1I6yUiqRq9hMrGBmicBJHkQhxI2pqV8Ql24ZNan_2GFhTtBuPDJohhdZzO7bbLeqW8XodPlbIC5YqoQyh3SQPD9T9VGWAoLMR7rslfvrlHWsZJDy0TAbkyt52bR6oNKiaFtG9G0BOkt0fIVnFz4FgQbWHYB5iBpMN-8LfvLtCkY2k6MGuOkXUyYAqp7WQHqejRvtEbJGM21VgeUxeZxWPivdXOTxZUsAi1QFHgb_nML3W6cHPKEW7EEcBWAcUKWtJlrswxDQ1PrvRX9gVTF8I8Yg_AoAogayMvw4UseJBiNSicZIdjr6xXNJIKbBiqNJwJd-3CaM_Sw_BYa2UkcYnR0rfqUBTP-vA5ov2ztlKFNtxVvWZyUfQ2Z-xqQfnKsxfW5khRNeNL3X-BYAH_ZFPVW_OW6iT9zke0pssGeFwg="
+          },
+          {
+            "function_call": {
+              "id": "adk-59450e58-10af-46b6-8a62-3a4463ffc6a5",
+              "args": {
+                "agent_name": "vulnerability_generator"
+              },
+              "name": "transfer_to_agent"
+            }
+          }
+        ],
+        "role": "model"
+      },
+      "finish_reason": "STOP",
+      "usage_metadata": {
+        "candidates_token_count": 1619,
+        "candidates_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 1619
+          }
+        ],
+        "prompt_token_count": 22564,
+        "prompt_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 22564
+          }
+        ],
+        "thoughts_token_count": 503,
+        "total_token_count": 24686,
+        "traffic_type": "ON_DEMAND"
+      },
+      "invocation_id": "e-611b1a67-a552-4224-86c3-a0114b0a0bc7",
+      "author": "vulnerability_research_agent",
+      "actions": {
+        "state_delta": {},
+        "artifact_delta": {},
+        "requested_auth_configs": {},
+        "requested_tool_confirmations": {}
+      },
+      "node_info": {
+        "path": "Boom_vulnerability_agent@1/vulnerability_research_agent@1"
+      },
+      "long_running_tool_ids": [],
+      "id": "70d4373c-fdaa-4b1e-86a2-8581c19fe820",
+      "timestamp": 1793115032.8446565,
+      "is_final_response": false
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "function_response": {
+              "id": "adk-59450e58-10af-46b6-8a62-3a4463ffc6a5",
+              "name": "transfer_to_agent",
+              "response": {
+                "result": null
+              }
+            }
+          }
+        ],
+        "role": "user"
+      },
+      "invocation_id": "e-611b1a67-a552-4224-86c3-a0114b0a0bc7",
+      "author": "vulnerability_research_agent",
+      "actions": {
+        "state_delta": {},
+        "artifact_delta": {},
+        "transfer_to_agent": "vulnerability_generator",
+        "requested_auth_configs": {},
+        "requested_tool_confirmations": {}
+      },
+      "node_info": {
+        "path": "Boom_vulnerability_agent@1/vulnerability_research_agent@1"
+      },
+      "id": "b606ec43-0c5d-4d88-b6b0-4e93aac0d855",
+      "timestamp": 1793115054.1368213,
+      "is_final_response": false
+    },
+    {
+      "model_version": "gemini-2.5-flash",
+      "content": {
+        "parts": [
+          {
+            "function_call": {
+              "id": "adk-4b08c93a-715a-4e8d-ba6c-9cd277386fa3",
+              "args": {
+                "source_code": "\n#include <stdint.h>\n\n// Standard bare-metal definitions\nextern volatile uint64_t tohost;\nvolatile uint64_t _stack[512];\nvolatile uint64_t * const _stack_top = _stack + 512;\n\n// RISC-V CSR access macros\n#define CSR_R(csr) ({ \\\n    uint64_t __v; \\\n    asm volatile (\"csrr %0, \" #csr : \"=r\" (__v)); \\\n    __v; \\\n})\n#define CSR_W(csr, val) ({ \\\n    asm volatile (\"csrw \" #csr \", %0\" :: \"rK\" (val)); \\\n})\n\n// PTE flags for Sv39\n#define PTE_V (1L << 0) // Valid\n#define PTE_R (1L << 1) // Read\n#define PTE_W (1L << 2) // Write\n#define PTE_X (1L << 3) // Execute\n#define PTE_U (1L << 4) // User (not used in M-mode)\n#define PTE_G (1L << 5) // Global\n#define PTE_A (1L << 6) // Accessed\n#define PTE_D (1L << 7) // Dirty\n\n// SATP modes\n#define SATP_MODE_BARE 0L\n#define SATP_MODE_SV39 (8L << 60)\n\n// Constants for the experiment\n#define NUM_TRIALS 30\n#define VICTIM_ITERS 200\n#define PRE_ATTACK_FAULTS 50\n\n// Victim work function\nstatic inline void victim_work(uint64_t *result_cycles) {\n    uint64_t start_cycles = CSR_R(mcycle);\n    for (int i = 0; i < VICTIM_ITERS; i++) {\n        asm volatile(\"add x1, x1, x0;\"); // Simple instruction\n    }\n    *result_cycles = CSR_R(mcycle) - start_cycles;\n}\n\n// Attacker priming function\n// Jumps to an unmapped address to cause I-TLB miss and instruction page fault\nstatic inline void attacker_prime(int num_faults) {\n    // This is an unmapped virtual address in our page table setup\n    // Accessing it will cause an instruction page fault, handled by trap_handler\n    volatile uint64_t target_unmapped_addr = 0x10000000;\n\n    for (int i = 0; i < num_faults; i++) {\n        // Use jalr to jump to the unmapped address.\n        // x0 is the return address register, so this is effectively a jump.\n        asm volatile(\"jalr x0, %0, 0\" :: \"r\"(target_unmapped_addr));\n    }\n}\n\n// Minimal Page Table for Sv39\n// We need to identity map the program's code/data segment (around 0x8000_0000)\n// The attacker will jump to 0x1000_0000 which is intentionally NOT mapped.\n// This page table will be aligned to 4KB.\nstatic uint64_t __attribute__((aligned(4096))) page_table_l2[512]; // L2 table\nstatic uint64_t __attribute__((aligned(4096))) page_table_l1[512]; // L1 table\nstatic uint64_t __attribute__((aligned(4096))) page_table_l0[512]; // L0 table\n\nvoid setup_paging() {\n    // For 0x8000_0000 region (where program code usually resides):\n    // Map 0x8000_0000 physical to 0x8000_0000 virtual (identity map)\n    // We will use 2MB pages (PTE_R | PTE_W | PTE_X).\n    // This means we only need L2 and L1 entries.\n    // L2 index for 0x8000_0000 is (0x80000000 >> 30) & 0x1FF = 0x2\n    // L1 index for 0x8000_0000 is (0x80000000 >> 21) & 0x1FF = 0x100\n\n    // Clear page tables initially\n    for (int i = 0; i < 512; i++) {\n        page_table_l2[i] = 0;\n        page_table_l1[i] = 0;\n        page_table_l0[i] = 0;\n    }\n\n    // L2 entry points to L1 table\n    // PPN of L1 table is ((uint64_t)page_table_l1 >> 12)\n    page_table_l2[0x2] = (((uint64_t)page_table_l1 >> 12) << 10) | PTE_V;\n\n    // L1 entry for 0x8000_0000 (2MB page)\n    // PPN for 0x8000_0000 (physical) is (0x80000000 >> 12)\n    // For 2MB page, PPN is (0x80000000 >> 21)\n    // PTE format for a 2MB page: PPN[2]..PPN[1] << 10 | PTE_flags\n    // PPN for 2MB page maps to (0x80000000 >> 21)\n    page_table_l1[0x100] = ((0x80000000 >> 12) << 10) | PTE_V | PTE_R | PTE_W | PTE_X | PTE_A | PTE_D; // Use 4KB page for simplicity\n\n    // L0 entry for 0x8000_0000 (4KB page)\n    // Instead of 2MB page in L1, let's setup a full 3-level page table for 4KB page.\n    // This requires L0 entry to be valid.\n\n    // Let's redo for a 4KB page at 0x8000_0000\n    // L2 index for 0x8000_0000 is (0x80000000 >> 30) & 0x1FF = 0x2\n    // L1 index for 0x8000_0000 is (0x80000000 >> 21) & 0x1FF = 0x100\n    // L0 index for 0x8000_0000 is (0x80000000 >> 12) & 0x1FF = 0x0\n\n    page_table_l2[0x2] = (((uint64_t)page_table_l1 >> 12) << 10) | PTE_V; // L2 points to L1\n    page_table_l1[0x100] = (((uint64_t)page_table_l0 >> 12) << 10) | PTE_V; // L1 points to L0\n    page_table_l0[0x0] = ((0x80000000 >> 12) << 10) | PTE_V | PTE_R | PTE_W | PTE_X | PTE_A | PTE_D; // L0 maps 0x80000000\n\n    // Set satp register\n    uint64_t satp_val = SATP_MODE_SV39 | (((uint64_t)page_table_l2 >> 12) & 0xFFFFFFFFFFFUL);\n    CSR_W(satp, satp_val);\n\n    // Invalidate TLB\n    asm volatile(\"sfence.vma zero, zero\");\n}\n\n\n// Trap handler (naked, no prologue/epilogue by compiler)\n__attribute__((naked)) void trap_handler(void) {\n    // Save minimal context (s0, s1, t0, t1, t2, a0, a1, a2, a3, a4, a5, a6, a7, sp, ra)\n    // Since this is M-mode only and we just modify mepc, we can be minimal\n    // For this simple case, we only need to restore mepc and mret\n\n    // read mcause to check trap type\n    uint64_t mcause_val = CSR_R(mcause);\n    uint64_t mepc_val = CSR_R(mepc);\n\n    // Instruction page fault: mcause = 12\n    if (mcause_val == 12) {\n        // For instruction page fault, we need to advance mepc by 4\n        // to skip the faulting instruction (the jalr)\n        mepc_val += 4;\n        CSR_W(mepc, mepc_val);\n    } else {\n        // Unexpected trap, print cause and halt\n        // For simplicity, just halt. Real systems would do more.\n        volatile uint64_t *uart_tx_ptr = (volatile uint64_t *)0x10000000; // Placeholder\n        // print_str(\"Unexpected trap: mcause = %lu, mepc = %lu\\\\n\", mcause_val, mepc_val);\n        tohost = 0xBAD; // Signal error\n        while (1) {}\n    }\n\n    // Return from trap\n    asm volatile(\"mret\");\n}\n\n// Entry point of the program\nvoid _start(void) {\n    // Set stack pointer\n    asm volatile(\"mv sp, %0\" :: \"r\"(_stack_top));\n    // Set M-mode trap vector to our handler\n    CSR_W(mtvec, (uint64_t)trap_handler);\n\n    main();\n\n    // End simulation\n    tohost = 1;\n    while (1) {}\n}\n\nint main(void) {\n    volatile uint64_t baseline_times[NUM_TRIALS];\n    volatile uint64_t attack_times[NUM_TRIALS];\n\n    // Enable virtual memory\n    setup_paging();\n\n    // Print header for results\n    // Using %lu for uint64_t, as %llu might corrupt output on this toolchain.\n    // Literal newline characters in strings are forbidden, use \\n.\n    printf(\"IMS-SAT Experiment Results\\\\n\");\n    printf(\"Trial,BaselineCycles,AttackCycles\\\\n\");\n\n    for (int i = 0; i < NUM_TRIALS; i++) {\n        // Baseline measurement: Victim alone\n        victim_work((uint64_t*)&baseline_times[i]);\n\n        // Attack measurement: Attacker primes, then Victim runs\n        attacker_prime(PRE_ATTACK_FAULTS);\n        victim_work((uint64_t*)&attack_times[i]);\n\n        printf(\"%d,%lu,%lu\\\\n\", i, baseline_times[i], attack_times[i]);\n    }\n\n    // Positive Control Check:\n    // The positive control is implicitly built into the experiment:\n    // We expect AttackCycles to be significantly higher than BaselineCycles.\n    // If BaselineCycles and AttackCycles are similar, the measurement setup is flawed.\n    // If AttackCycles are much higher, it indicates the I-MSHR saturation worked.\n    printf(\"Positive control: AttackCycles > BaselineCycles. If not, measurement setup is invalid.\\\\n\");\n\n    return 0;\n}\n",
+                "program_name": "ims_sat_v1"
+              },
+              "name": "execute_boom_program"
+            },
+            "thought_signature": "AY89a19QBOvizPW8fqqWOuqCpb63WOS_tyZFydmYM7r1CDtVjAxtPAKkHGtrVtz5Cto-y4dcxl3hyq2SekHA580r1Cpk_ZONPfgUnheHt6SA2Azx1F5xlVf6Z0itJWsTQyHAeYwBfmcOjnHFEQubFzjOjgMQeRsktDhJ0_B8DfNXj9YNWs8SB7RcAPA12ryWGQf70SM81Xb3L9ZZYd0WmlOhDOs7Tyyu2evTUX-AWY5hJIXleoGAvUaZcjfhKCNvblsfcYazspI0NuRLYqUMUO2pH_Brn2kjuSQHh2bprHH6e151qAIEgNR9E8OTL5acZV5wpArqeBf292dSkUciH4I-pMoiII-anUoWNex3vuuwsfw2n3WZKRjSoDlgNkyKApmBrYlGCFQbGdsCqFqC55PKyDJWzJA9KCstmWv69zYYvCdeDqWoGNhnw05_n5scaElM4Z3uCiCJm3dOT4jufqwIw092jSojvcRlNRNY5bX_kbcI3TK6fleKYaoK3M3yz90BflKAOVfkGb5VBWBvTPLVbayGGKPtT2cyvqM6Ja3t5728ASlvYXgy13hNh5Huw8whw-NPDVkw6zQNAVoJCFSCy-fkK_PQt7NUBN0ocDxTKGy_skYkHXhP8jF29JFh3T2G46ERQs-rX08FFzbmfEdrxDMR4TwTyGEYMVYeeG_QsrzQME5s5plFnYuheCle8WQBUQpitUVa84G5YnAhdcQ1INxUf2lhJT3PxS1dxgxt2VJztGua6nBHfxHlP3jpvr8NZgFaoe65_CLc79kPuxHlllQRFF_1glN6k7O0O9qX9nNki-Yb0UhznKRhA0rHIBduSjhcwxldPX-RKWcKhM8_bkLufxJ0kE-5R_JOR0WhsZdmelD_9onWJUsFj5KMWdzAyP2zeAJhhFg24uDs6Gj08ygV50MrTVk5J6yvqkvirJQ29LXTw05WBmHDfuBKRNesvc0HGBRRVAavAFxVQapakVwgbbJihJWzMKHnSQKPgjQJWhlkXl4dT9H8b-N2Njg84fkuJV1MB415Dr2Uxwwc8Qlp-gSJNA2beIU2WmosV0XFzXlefZ8SxkUnXeAdhg0Alwt5hMMoyZSlpfNK2pbcGw7wenhRofduNYuu6BDUUPhqPCBc13Vvfxgp7do2cCeMLdcHWlbJLcxWbgRPUz0aM8WrxNCqHNZZH5_62Qq-TDNPhIXuDWP1xLXLwl9es33J4OtiHGrU3yPCOY46NrtNcWd-4nYXaA5adBxeYj1B6gZoe5m7wBD-mTVBnrJJSEdxfyYoJfuYvJh9MxN1WpqIKaF3lwnAw3mMcbel-z1za0ylP4d4R91u0miCkE_r9GTzrnTLxq_NgDcTbZATipE0n1OTxwFFhMmUFubLVTZS2ZtRuPzw-NnZy5ejgmCVUVjR-3tmCd3UDmOU8tHIIgaTw-sxwWXCqX9WSmy00MvTUoSYHa8WdphWDzJU_Rl4AZhWeKoBLp-06A1L9OZ8Que5UhcC01mx0CzVdud-eSXkZ4XtQ5YIj0reACMR2klSfgHlBDxptn9ic3EaoeEyWyd_ltudHRyDGopM9j3oAiMxXn-4HvU4aDn9ZhLwV7DAVkAz8ymlG6BmuMLS4nxOzGbWQ1thbmFmIUiywfGUVZJPnSvDDoBcQ9B16m_mvbGTqMj3Bn_CMxDxnsmnWdz0Gst6jFB7Qh1H13Te9wfqBV6HNlvsNsDvv3NRcs4Ful-434hCW1Jzn_VAK-zJthIVYHxFF50LVHsPqavtpCHK4bKGmFdPj_tdVjOLQbhdwH2ZTMJ5e8d9EGQURay4UARKTzEBhogpQO-3v-e_kxgpj86EyvHifAo8GFlzOG_5riea24PKg9zpmu8Q6qmZYBCJoqKQNoFkIc1HkXmO_rLffh-jZQ5TQ9E3zcXtPGQ-cpjaWcW8hatvbyddrQdBpWXIAXiko5FOfc0qPhNn0YVUC0vKK7i9G0iEmD4RQrRfoD3wYE47Zqy7svrLaYauSu3zRW7U47SFScVWBEyZq_-d215_OhOECJOzRb8oln2iEQxNF6KEUu0qEaCd1I0CfnZ8UMqerEpHOVpPH7xL4fV-NG5mdK9MLgyJF8cXZSEEzYDq1Sq0AeXSQ1HJpVP0CSUPwtD5_t_dPEehw2nECYjYj0ZqHzGovt_uvVv8DCsIdkzFxYbqV3F2MS7E08XEAG24HDSzCs4_AodvFjOPjHCvUUNSFc34t-RbXmcmdISifrR263fjdp8Oqrk-c4ANrzY2w5MdbbbTwQlQkxvRyI7DPyenw4mho1Qijerv_Sbkgh62NCJGCjnZX_5Ji2G7nGUV59zdJ3rettEBkMNT3EmCeHNKRCyBvznUnNWZBCIOMqHl14P2lkN2a772ZbLEBrdeTj_tUzrlbqAMh7bOjQcHFbAwXo74SHTGG0pYgulr_Q0Mm8WXDvJFF7kpBRiHd9veivbWyEQMhcIhh44eWZC_i721ZJc5i1l9-rbYqy57iKHwnY1iitVNVnz0oTkYVmkzMgn81gp7dcQ6pUydp42u0tGgIpbL5BYqTdxKId3JZvuDIDWcHIX1JS3WWnzB82ckGbIH1EIMyys9gDXZArCR4_6FK5RrDgpWMdAbhH93DtrpOc5kfIqhUvhvVOYU-e81LIlP9_WPigm2cHP3CGc_F2Hua7kO7GUNWIFalOGKDi3PKP8vw5xKzVe1tt1xBSCmM9QQLHDpU86vhQswlKf1kdFbdv7Lqr41xbrycymz8YAYnx5vNbipsYErzyGvNzbkyqrvpXmUjWtV7rFOsCTmeD1jCYCFYFNMTXNbK2BXxILBboLnt9ljcoYjY4QPdOj50ZwiFe9uWWBBsZ61Pj4ommMN-uGhRLotSdxi0j60XW1Ah5MGMOKFQ4F1eu-sy81L5rGJLMaJhqfx5xMTfEtyQR1Lo_xWFKeBvdClT-b3ZH96s-NWsAPHOAESVO5TV9yMrqaBJ3cqFmx5dFyl7R9qSWXQ2oy1oHJzJHlAcQ6NICo2ID_QDy60eYiO1r8J8P_nKnZZsQEnXQ9xUTJjr8X8nwfHIHLvBX7RZoG0GvNVxJCHm3XTnrVst_NjHuBH3CXwtYCq5Xf-53bGG4Unxo7hblg6DPzO5hKPatrlNvnLwFSRTmX7bW9iYn64H80SSkme_oLlnnXTzHMJRQuFCBdOz-BvzBd_5uCGbpLlHvlKEJAwrxMg7HtxMjSUeMIuK8LR4vdGhRvvwXS2gbw7mIZ8TSelsLkB3b4YgBwivfgrYOkw1rd1-oljcxThNCux-17FM6XvHeT5T05_UOEbX9LvbQONVByN1iDefvRSVudjcFhtQXioSNKJHiOs5QVlAm6EAxE9cNLgXpInxc1UkQfbzc16G_r7rUO-BBS_B_Qhafv2-x0VQqYxubRFgWMIbS1jbkI1BNB7IM3mtQqRfm0hO5S4n0xl4q9oU0WB0Bj4gr8s1obLkNL_mNiNPrLlOdnWm2MbvA8oRkBD-VANH502BIaLlcNwF21tV1x44r98BEt_6SW_A9iwt7CKPNgoTq7JqpNmXo7gGmLHVunrVBPawl0wv3AyfnwJzmHiISf2B_gRY9PQP1ajDkPjRj65M4X_4uYWv9cESvYKaHD05wDz0EgSm8_vZGTSVV9rFFdTPfDY5qi4DQhP_wA7rP0a21CNtUcaF86VUyM4Br2EbSjyZyjlJpGxBW_zn4bS7viSEygbJnkiabG6MbIIxoXctfnxrBl5-4Ly2xZG25sJLHLfDfn7Vwwtu8PYajvn6Ws2t4s1X9cwBUZTkdzO4guDOkLAeGOTHU5Nh45xY9t2R3nTpm35EwY1Xp58sO4b4hW9KxuioQyu8olZzYund9B34ThWekiP8L_NY98hx5A-QlB-bWx4uthUxAEUVpHWlSDPoJhrezbt8ugr4GJhCbWy2Xa21R-vsJcALrAaWHkkxZVuxzLKGevXnsOLh6dGlijwkTldXdweW2VRfLepGl0s8Q-DEb-13ldm3WLgHtYmtlO7Okc4dh4pGPrEgz3esy9hxloW4l6PmMMHzNNPv0P6bRBfIXWfL4FcDy7z0hrRwNzE9DeEzW0DlhSeSUBZC30Go8ZidOcsYW9Zv_G6KlRf-ezoazICerP6xzy_LSRe4T2buB-30-QynNmy32kD0-29LqLOnb0bzZNDVnYVx6wqHuQGf0W7Wr66Mn-ORwiS-UGCq1m2grBaC0UC2ji4bEgaV_sZ1JWvy1uQQGEl_7B51TgQL5-5jYklXhjr0RxVKvlEIW31Fhpw5YVcjwayhIYsQO59l8BLEpkFzLUpmj2NP8j-xO5tHYx0ImRjwiBJpQqMU2yIUj36-JGDfc0PgC9cQ1NIivzRHAS66b6hpc2uqlsDZB0e2xjPW9zC4zKojGehrZFuy329ranBRYvBdGTFxffzFWXH83HBhekoSuvea69ww9wTe1ZJiw9ENz88sJDVAIDMm5-L1OzB6PpQokExArXAzzEKUoxLcCajNcwUlXTkPwx-39BRhWnBZ5MUIseGJH2RrobCn4vOmwnOnJfdHgSfl_godKXvQcJc6i-RkGh9qcisUo-TgrGUIyjY86_6aksXZfjMbNuZtGhCwWM9WS4Ae50mWltt8IOdiQV14VyD42s-DF4-kVJvxqSh_R5Gd26Sae6gqJlR5sTGUq8JYpq-EgsDLl8abDgOMlSw9SaIeY-X42DMGMUabr0uNVE0JY3Ct6hGTow3G3G64V3Io6IGfBw4CuWXa830j3Qlxj29v_D1-uNxcHXJWVa4fRjxOkdDfOuHUYagq-l_s1YqwBqL7uTM_E7QUla7IVlpTbtASB7_D_fMf68skZb7zc1BqUtckBVeIjzID8a59UhFIZmwmsvaYaZbzKkZYB3_iCWxK7QmsXnIvJBqd6Jr7n5sUjFH_vJ1UYSpk40k_lZMBkg1wQgIbIuYMq5UxrBeosFM2NwiyjovahXb7KYHswwBLpSWsdG60S2FioOip-BnsfgFSXZGYLRa7i0-Pkn0GxLv1zS9Tf-_TJTaCCpfCw5oBS7t7NDKLIAfqrQ9GZpNXv3pfz3jb9_KqTmzVJTxAPo3ko9qXZ8-oRyuYqUe2ypOvAYlyWbNiPdtVvN3KSl0ZqbSCRX4GuZnuOMKlADlcx79gA6snMf2xzfGHLhd4GmVKpZKMVt8tPg3CP9dCePrFXe6MCSPnshIIXGf0XoldvwqAQ86M0qkzXDV5z1-FIVdU7DvSS4reJSZAHqXgvWMIhEv_iqvDO8tnkiVxDo7oM0zWiCA8HuApmMrRznKkikLadus6ljgOqSxUBwZWa7deYmS822Z-yDVBsR1s68PP4XE5uHBuG5tfo4fOwOV0wU94qGGzO6fmvcR2fO_woFHrW3eyOs1Piql2EHfpt69e2g4wGeaHxUDxqbS0kpEg5z1vGaM0qYuAU8S6h2MHt1A-20i0jibcwH7CKCY1zgYyLFAAEUTo1ptDI8iSs8s90OWa1a4Su4Rjf8y-M-wyOzgmuRFT6PmKQ3b-bcsiMFhKVwWe9UGX80bwbrtPHKuEPM1LzgbL-bpSKXFpQcFU_jGmSC7KT1z_RLItFtIoCmjwMrXQkI8KObp3k7-7jetdeBKD-cBUdFhNnTnY3qlLMGyxtoifVi-EycYTtQ6DP5qBglFOGYY9evGv7np9nOdztiWtz6QrDVV7eHpHts6dSqjiY-2ZPMx5IRxrO_85AuwiVYnX8jof1LFng6F3-K0-KXHD5Zsc717vcCIQC_ccA80k0VBFotB50WEFfiuongZueukfgxVkl-qzA6qwT3M4-2JgySKrHY1WMxGiilUkOGTGka-cyE6B5vBg1iHMR2sgVBgVeCQ9TFp-Hu0w4gwQAq6n6XMlBFiDMI6m91VyI2RujqnJwOAjJ-rhMX-iXh5_fILIVYM7cAeqdR-qUBedkVSMpSYldZypRY_IDmWvkZWA6RNQtiUy83VzsJ5D3zr-F71onGRC4gaNthvqm2lNj7TkpeLed9GuevpfaMZVjZzafrlNmobrSIIA6Xiu7nl3gIeA05GddCIHOPLwyMVvN2MHZ8lkuveVBZANVMq1YSHCVxSP6ydwrYYGbpqomZ3K019QCtBY_5TLpQSdlW15oDwBlUbPwuiyj0X-rIG919qFHpMYSGQrvGmHWxWVRfb6fcsG4SEgoQgnVBJaaVwELBzb0d3DhpS6_I4MHXc9U8rL1sRChQ1Kr4lpcZxdkudegZiraZa4iTgWvmr8WhQPFNpoF6rTXMhkU5feMOYT5ZqKl-rJznra1UrNo6H7mZeTcDvaIBAf8n5eEUsO68CsX4BUcV9ihP4nF7oubE7B6Sn-1WZhZzSxLXwTL5sCbIHa_8WiPsNPn2b-qwV_gDNFglvCR0LSEO1SjMGpCRhQCBK1wJ86LUtEAwxXXn5gXuYKOeJ6xaExjgc0rL94RKNJxqJ_cOK2fOeSx4gyQPjln10zhGaXsJOVir7rqiPwT1iAa6a32ESoV9cu7CFKJRK_jDElWkhmtnqrY1OjzTkD6p-0MWzwpf-zuqQwhe8gHf1qt3CRHMjBx4sByzk3poEsW_XdUzncby52kRtNwC6B9Emw4fIfyWmpspblJkahEVpGdeIDdCKUGIjbbu9Hbqh75OXVXFuxZdo9VmhptrL9LsiuCU4l3ILncFUfptvl6VMZ_50QtALrjfo540IcJNXr-ACHVZIzUnT0rhGgNDsFw4Vs7F03mZ2-3qqjo9f7fhSjy1Y8fzRWoLTuhZo9pOJtWVIgpOakZCvJFO16P9yfBLLvL40wFlTurGlZ-WLCRg2rx_qiZUPQ--t3_-c-xM2M5Lr3ntKW4Fet3rg3cmZhM1zmhVN6bL_BSBI8pK5ja5ykosif4XV0hbsOXZhbjd1zqEiug4DPx5bwM_bAwdmzh9b3a9VqFYQKpP2N3xzi7UqYRbg4ugpI0-T3pcyqLznrclj7HpOpenn-ixHy8lFSntvrhy0dvYG9heAJJD8KPXps6nTuLN11hFqQthH88SOR0mTzvN5vqk63QJ3hqaqj812Iz7K0-ge9Y7ytf1vRx63qmw5iasQGb1eAnFMdLu_wqmRJvtdIMPXgJCHxS9Wq4FxoiLjVMluErMf-eofaX5D-ARkk_N3tmxVV6cnmGcYw6Uf0i8cEGB3r7VvaUuW0OZlZWE2KgkytmxZLYj90pePEuOFbryuiYTUa-lKh6YW528R3hrlRdimNlEDBtSjlvkSf86ZEfk6eYeN0RtE5hPL6eq6FmCyz2gXPsS9MAJ-pOuBdqkrzLRYxVs7Mpp68NBpNaPXREz7CUcnklBk5WtX-mYAmnF6JJT1_PZmUU7IChFECeUJ0_NVMyEmdE0MyC83SYWa42FWvPbkLZh7tl9uBqGnF_UeKVNGhGEKajgNkSyaTLOqcF06hl_EEg1OT9xR7kVMDUQrwLfd3yo5uhZVwYY9jVApi-5sqtIfPtvfr9071sBoTCEy2NOdGXOy03RiFUIGucsLbWNfWAnTF1tqbGMW3fO1SCzFIrNdR4DN-zt1KlwpFBrKI_rZjfEGIKxfHtuzUqvsmefITMjY94OM9BlRIwUreeBNZ-ESqMKecFxzo4FCHeusbLqk2WMGWMnuu0hS12oB6PqaqK8yqyDusgQezRRHh62TpZ_BoDBInF96ctOZSBvQqvWhUB59UewPn3x2q53Lif9NLsGBwOzTxf0LfTIb1epsThI_7fIFxYCrfyg13F_UcXtPAKL71ENh4XwksxYplIK74rGtEYNFLw2Edl94icrDmvf0u_25vF-6H2ykG45C_lYTG2DRGgX-RD4a9dLuharH7uzEMUzkHIBIekOSd2Gfi6pm2GkGClP9JKBsJwjL70Fk_Hx5xwELG_yMgvBSQs-vQTFMDtxd0o80SsrMyi24h05o1FuZkaF1ZKKGsOS9Y2T-wIJzFQbDcXFhbfFXO5W8_LcVni_maU-JcO2LqsSyC1WVAfRZtrzv_ahQ2J9hEehbvCKqA0xZFuXyLiZN_yVgrXgJCevhbJWmaNfQVbWTyYF1xJyDsryUaEFGHcFCQQNt6IrzLiy_qEdOOreyW352SY2qQNDa8O-ImVPluxJrCw_SfIPbcCPfxaAboywb8jujLody2S2fsTcImo73Ze19DQ8lV_kUUzEoQVKmm_c5d_rOzze1qiUGfwaE43DSHT9KS_jB9PilmL5kpr97izMbAcbxUc9V63GVSJtkfRccjlCvckcYBtDZrI6nHNH2xzpzvo-kBp8wR8nJA5V_z4pFFPz02y7jJZCgTKD34ibN-_EyzKksY7J9v4GnxDJhgE9m0S95SMtIon44LtBNDc_1FGRLuDGSeFEhM_qJ_t0wZppACreYVtRnuh1Fm4SfCnlMpaZBJHUS5iZ6xD4aQorsNfdA5bMdeLgSeazH4VpHKCuhhTln-LwPiGWGfnjh6PDC7u67gYHvFyjCmeAppqEcAm--p3p48AwMA2H5CHgE1pa9JZhACM5XGV4GUmWooQilaRvqxpH-VAnDypzEUXsfA099qNTUt4GtvAd8rU3CDSzmHx61JHxMmYtDGfUKbQ-XGGbL8xTMr-5OpNROVIK6nr2mXRz80h7cxtNbX4QMvVApUBQtFs339n-qjFd2ZaaDWlA7E30B6Cp0gSTgxzFgVgdeq6l_QC0ATpquKwwr1TCZOTznfdk5mpidRyDE1xAeJxa0k4_opIdfp9H1lhgCXmSW_tqbqqQ7e7Sv1a1k-TDDPnt1_T8VdI7ZaoTTO1AGgZuRQofj3FFqW4wFDoBLcs7ACop9L3QdNUwf5cd2yJz7DP4-yeYBOj4DXsgKFm8hNxgc6YRmPsHxhuNuMdbnghtprpHgKAeb_nLx3OI76azzmIUd9fZdj3dNdLu3Ti_RcJTHRyiBzPZjjJRFoHmuUqgJPhawPW8479BCahR8YzqvGSOotrmslMFkFEI16D1nA88qGO-oV05mPvmFQOz3AIhZH0XJUe3eBjRQFyhny_4uMO_GtrPXQO_if1NpcRe8-xxM4An4ZvmMtEZ5yoV3R2_u1gG1KRBUIsuXO1zuPmVEqkx0kdZMyf3D3o6DKnCVD0-0crJUSuxTsbC98TS6d2Lj0Fde77zjwZYfmbSlDc9u_iPBRh1RFUmGK0hwXLkt470fFoAwGUUea7xvpIxBpdUk03NMw93M9M2D_-kY8kXIfgSNTm5fMLgPDrkkanodVBKv0Tem0xlMtCfBXzpPufwa1304A2NrDHMFfdW2-w3hsQ2znBWUpgnV40UHttpcUdvnhe33eU99jgXmVm6LrYy7orlS0Klc_OGbdF4kA-kL0QgqglFG73CHWSkszAD1ZJ9mr6mDRdCoq1kLQuw2YXzUNjQ7YdKOlkCT3fkD1amAWC6PMZjEl4jB7anVfVwRN7UnETd7QnjhAYDsow1IIWBNpM0cfrazFKOiom4rJhidUSoeFJI8lhsEmeYt0W43bvnKULbm1EwatoU7b5_qJ9bXXFKUuxdP-ZcXjFI9l6U8YJ5yiYSovm4YekgBURL-gCS8sDsCv_SXiEjMBrWAjc8YgiPyuyVdm-9vg7-1A9JY2u7YczGxzXnFSVJEfeGxgCbPp-2viOMzjZAUs822BCgc9GLV_M3G9Oj7cVvmLOJkfnYCWHqtdQ568jmH86T2kDg31vWSOzY3RdwR0hcyyvP6JlYU6558i8JXOS-DZq-1CQ52zB8aEXsxr_WucEKZA9U-USqprzGjwYwv5_ro3Ln5HrmTHAyYSIDrOG-o2YJGFIMZ3arF19XRLssL-CiWkb6Su9_i-DeDEkQZ3TdKcoTAdyMHDvlB2_cVqEkOlnzsaFlRpkk77pfN0AUhqLGRwxppuSpIaZe705cuWzWMSEn1W__8cHeuHnU-XQB3_QfU3u6tFa9j8tB_v5UIfSlwPxDAElx1YvIv05zDfRy_0kvR2BjjGSXHk-0U4IPYksmx8DhukmB5GEOPS4tUDbqb0favHnDcOrZfDw5j1UdPJiWINba5UFcUnuXA-37N1MEF94tiSDdDwCZ8TwFDQSP0Cn8ruDUCt6XV5SQFf1pf3la898fy03MsO8FSMvOryFwt55y9BVF8rDWjPgGeZ5fQ0Erq5yiyLEs-_dCi7lTp8BQk9s_h8JB4vqgZmlrZp2ncaz7-7HODuqcNXweKO7H3f0GArt6dn_in665AVhFrRcjfRCTBKfkhMY-Qp2WzK_QlqJGaqmHSKJwixl1nAcUCy1Gz1-GBf1fdTBWjYEjHp1peUmaukiOcA6aMnWltDX4GoOENsLVqLCUYtautQM4fFyckt6sPzkiUFmVvetUxriE75lpVZzEkdHpNEg22clDu8QXTDG-C0eAMxSJx56R_3U0qI7qQRiT42u26BnqYN57rTC3Hj6RSR8p7TuaILYiB-OAfEERIw7en9hqsmOsddk5A7uiSsTV8-ajEfrEeZABgGzfdlX-I-i5r8IIkhSKcvAg3Ce-Wpz3petm18IIUJ4dWmaRYvQEue_6TyN8fc40f92mMvRkPegNitFpYYjL3Zd6AEwFjxRbej1QTES7BZ5ASUwf4pZxjYDMrTBYHNwLKuyCcHlpH_M4cpVjho0c2HZ9zYFKl4ntUclFJ3lVdgxN2DP53ZeUOe5z8FPPVMXIm8bQtvCE9kceXgDNx6OW3k040IGBfhqfWGn1QDTlzZPlDWhaxHmB4flvigJ7A0rb2cOkDjat5tVeWmS4hLmDKFae3FKkQ0r_S8VaM-qaq6ZCgoL7I32tltumCbbNMaKRFep-RqdvqnJ21UWOw5uQ9AifDvNR066560SPjqSWfGAjtlrRpQ0rV7keOJFyXuF7jHNwZTYRfmKTc66rR8HOQX5IkTEFhbP7rOqh79zs1iBEFrMoTYukVeLVLMH-HXTk0b3XSrGEWLcYnbByawdXy1uw87Et8PLYqoZghQYisATeP71BE5MaFdPUFCLFgSPzoGA8hFs4d3lpYFi2BPwLBVFmUHfQ3jRiPBahkblhaOpcwZQIpcRWOyw--wmagg75Q8k5eWdmdrCmumqXF6g2ROacrQ09R9cO8BodtIRvSndFQH-X0YJmAUFiYwMlROvAM1WHC0tQo20TcwZcEO1PxZkdMW1iy28_wT4mTiluz9bRweOFCiH0Ot4hD5HmToWC34dg689NVOSAbsHidhzC2LmJGbbq8K7vSIseaQUNT_awRwJMTKqnwI7WUVDlj28_jnv1-Wvzif9_S2GhweJfyTwtxaR6Tp11RGnMPJHEBEj0k6kOLi0KrsyvxvTO-BJl8o32iqRUd2ok8zYDO3r4X7KjNUzmsu92E0cu0hQuQs4ghhGlwTemBIRWhEGENst58yd0a5UpG_J5j32qC_eF10FwuSbm3vUGAfnxnbiWiJvdA-Aa3fCYd_i9mqUQS79n1neJfPNcp_nG-8gOhctzkBqQ0YXPOR2CcBVzokhxV02sVsn3ZHMs8fBDaGYD_A6o2sLGbM3LSjV4qYVUFOBPgFPUKTJr9fC3Adw1i0qOgBNDULywZYje5GVVe1T4qxFAEit61GIn2uYSX-6MKLgxKh0J8usZ0Iwuu_XV2ee5p4W-zqqdkE0pDZlFSSMpGM-o1A31V8-UqtmNx-wxYxEFegObewkWphp2vg9Df_D32YC-CLIh2thxmlexnGW05ClGvrUoO4-FWIVoFO-v3ahA7q-_G_lhW4kFIm7NRi6bDT2ngBxz9KlQS-A_7wgPoIl6yV9i4mMS8ZeTDEM6XzAAjLJEfMQ0AQoac6mfDqceudKJH1hLxoMNaG43IIudXPias25veU1ozhbGN3IYYBcJGrHutIR2NCfKh1Y_bHidwgfMyuRAtlkMHf_yKUaQiN1HzfAvCywpgbVam-h3NXxO7zpnWstm6wZYNmNYuZdq_SsUux8h4NLZ3hpgQtd8hMIH9kVmvzd9cj9urDhxOXJGAmvgbawROfiTr1W7rRImQ3-h_YrujnINGwmAgQzX6r5iQXVZV6ZLgOQNqBb8qS9mtpiOd-t42wHU2PiycsPw_Hcpntvg333iD89ILQjcQVna9yaMGg_6cs06-8BrqNW0H76Zkgczkpy5zhz8GjW4oWdTjFcnMLSKqRaFizVA1TDGVRaikT53phksDvIHOpaZ0zmfe5Un-9CbpFnUWKcly4TBZKthU0osoADVSB76uxrdxi87t1rgrN-pme1vf0mk1tguA1oOUdJpI7B5QAephuQ2Dmhf4AxMDcamKGs5KonkPU3eZVwDz0poPonwqPcEw-na3nlyFVSBVotG2pKn5cfX2NRlWRFmYVyQhvVUnBhRi7ieVPdGq3Vf_b0GiwgXtHPIcVnyYfKYkffXtJsUhB1L_VCyBBBGca-4izmpkKlPXcfcl0gwrpejKpvlr6qVJVMXJq6NGI83TRheAAtDRjB4HhDt9PJFF67feZ_s9KejeuEM3XmXW3vEyLuGFrUeslUN3IeViF52UCBgi1OL7H-bGna2CfC01_Lp-8UfLig-i22YSVVgrcGOJzvjVV4g9jNUX7-gUYhUS-8iK-D0T8d9PNJzMHkJo6JJqJOc3zFF-ez72s5_-tUxKDdNzlI42WIn3NAoEONOgqw2OLiJfPAk08eqsA218HtV0UshXl3aZOrCTRNu1zVCU5tLwSYTeaWAd9QjIn28BvqXCCBAbaufjwzhIVdNUIW4Pd-Agos_WMECzkRgy_HnuY4UlNc-5r_YONGasB9GVOI1Qbth2QO09kBbHzXjlQWTrQv3Ur9uUzOL5vHbE7MVMggRszKIdVyLXQjBNnis-GuEnKnZHLKNPmvh2VxNyLlYsA5Qb7nzwtKpxPqY1D04vxZ98mgOkOcwztANIf0eNsnMdyPmm01V3J-JnzyGgCXsT3QPTzRDK0R6l65U7d-Ux7oJuaTmXMcQ8DN2CkXvHYPfRsjdMvgQKJWd38MfKCusrA16vcTgHvaaakYSo3Lu7yy5T_swyg4v4yNOOYvFliaYtrT4TNI_kNT7gZwG7G3If0jhxL1MRUl2PSOn_J-jqDbE75JP7rmF3PpX9BzX0X2LdfEA9t_0L3ZUUA8miGkLKvA5-8Heu_cL1imzdfx1T0_L1ySl3zcTOhXeXBQrKVc9K2h7Ih8zAkmsWcp-zGUb5Z2uZFmarx0G94cJauRvCVOIWCCUd4mzuzoud4VE4XmvPns2w8JoZpnf3RUiLU-O5S7-iiOdiQt1uVUYoYmvWlvUUsFtR7FV9FSiP9mcEPuWgnuIrrGUwYeI52p0nDkEYSXFkuNciFvag5TICcBFEdwehtdeKoTjlX6kpj9JPx1H8NOunZKgdxE8C-nM1WJ_Lg6y28mPP8SCTeS5CqzPiuA9-WyNHWcRQ6HtfsSjt9AQi0f6pukjMGD25N1gbDtCxGSpUqLTmLfmPrSjIKgGMIhAOgheWAHESVSQE4753mrjuSIxSnNDO74tTDRQQ17Fo8mWBxDLo69W3X3QcLgS9lmHTDfmQoOXM8reWUiBcRc9SkfmAXzKsKVk5iPeO8de9HNgvti-Ib8VClFy2uwsMSl__iccH4GR11uyLbY2p0egwgwfwdlWpT4Y-f_lgYPPuErWPuQsaiqWAtbCKsTr5m0cTRiyPPILqzCTqEOPRPTENf95GpezfVKCUrL_dwTk2ELZs12nyR8O7jLKb5gOSunLOLKlKXdsxs5soIS4y7W4c1sP1ZkB_g_SS6UCeHJXzIBHTpNwVu682313Ex_L0PIVKqXDQ9DkPIUJYVh8piNLCf-LUVfne45Frx_aPuzE4KABlnuiXonFOhx8_FOVUJ49yxeKHVymYQpRmSJ3Rvz13RhCT8onbK0YDmKhjRpdBS-kRN4zVugWtTTtz-QOrLmmOmc70X4esjDLp-KbRCzR5fMXFUBP8N4KVxyb3JPG-MsN7f3lxRMz2PzKdqOeIY7nRXjyliNAI9fQmYrpMLzYcQGTJLRS-ZDqfu8-ZUhk-mXdy60dpr6VgQo6OiHXvbp432LLH-QmC0ieiIX5nTxkiNE1MMG0iOA-9_aMrahyu8-7iE0RX02Dg2CCUeC5E8bPR4uZAnbp0YEwrOaOtwUSjgqjsJdW8DoulIAvv1gCDhKr5JHm6hDvL9LQJNbjxdCarVtMhpbMnxO4Sk3mSYJxny6YBx9-ci_HExw-Qj-Zd_BVC1ij1E7anpn1Gn1Zt4HeNdnLb613d1APJt4M9AXobPS14Dt84bIiCgVuArzDvVtUbLUXtLC_B9TNZ_MIj1Yi-MGfaIplKGCMER5R5mVYkL31vzWMVb0WHYaOMUK_lzz3AT4ijqtjkkD0Z5YKS9GgS_Y6RjZWapGlG1Pn3YI_aRtp11DFgtvrwKDCMoO-HVj12eaGh7gkzHVBW5GrbEVPwRhARWnsOTACfZvN-yiy5F3RgXRYKfb6cGMKR5Y2rPzbb74FoGyYCVuulkOXxBx55w8rXCmA2eNjKpWtnp12WqQqDz68-1LvZa4GWjyz_LP-iVTJq213_U3S098_TC6XmCahgmEKBkgl1WTLIDDcvctNemLFrf4B30qLtIbL-RgOFSLIqlLCQ7FzumI4fQtYrYIJcGAKIBoIf0LRHF-5unIu0uX4oOIAKG9dlwaovBUVUOeYMU0N8RIOyclBCkO_EBkCysJ-zqW4iEltY5AGW78Y3gJNTiaxHjDG3uQx9xZB5_Z2XMA7h3mspf4f3mgbN8tMgzh6Jqm__NNB9UmDMxDvXSs9puBIQF0BffETmS-JcJ-zs9Uh5b7s9CiZ00s65Xry1SL_6N5Rr-gTIIoMiL7lBGXP9Ijv__Nm8ZewMr6AS7wN6b5hW6Cx7ELYIDuOxT29P5mh7OdidrcMkO9EgNZ5v7mt2UyN2t9u_aPlCsXDpQc1G8ob1YV543-MbWZDfj6UMIDSZLMbVfh-ruSlcqY9gWhVGV7gVCigGWm9aqqS2TLqzBl4rpdSeQzJgJ5VoP9-ATgMX_4sJyMQtyTHHBLWhULP1MyC_njjCS9UADVEzkaiGm6FX-WzJUzupP6HiRCuvgxoEdu8dHB3QEy8RFVkYae517lP4Tip8DxqkbiBZVda_Bfw-RklVwfY6MNfSSCneOGLlytek24c6eHIzOv7hxGt3VktGYfPE37HmsZYdy9GD119Fzljjis1Ek63zVE3TrnwmnpAw-ZN_goY1_feTX0NWU5Ti4SzW6hcm3Mnw9pw6xGRQXpMA8Fqfex8VYXxfBPct0f7DRXpCNlH750LgT4ezQb5L5ENggo1NCv2Eb_qHyyYQSp7YMf7LrUhv98zuuf-FR0hy5yx2BflMBxvVStfBE4mdwxd4cxgpItjpGoHTeLtJu2uLl9H6SWBzQrW8xPu-swRD5C01GUX8scq6KZKwugKkR4Ayd_LDcjFrSoLpBMX-2VTIRfrcQIRRfxwpqyZHw2AtLO4Ea2j07BQcaKA9X3SyyMVfYjqVsqWoL1JAw_VzTWf3wiAn1lKEpkFHSm63shh-6xD2omcsKe-fBnBrulueHsvWqHptyOhD0kDotxxShxR-TRjgNr29yQzb-evkg8lj5aSLpSTENRNU3DTfUZsijnQa9RvcKcuErL0b9VtEv_iNa2iS91ATaWY136XO7tRau5O2wY4hV2nwLI4tfDxTSr5n2iUmbDKSsuE44dyh3-vmk9ye3YjrrmuZ-8KZAlaX939h5NIYFB4nXo4_AoGKevH_27LiDjzIl-awxKJ8IO_o64vpKp9QQbaXrXDTybynEIodwI-wmNo0r1DXxT7bw1GFGwDAo0TCRbOG5TlI5YPpNcks6bb8-RdSF-dj5tkfujjjyEb-d71vZ7t-wHyuEJMgn1077dk07FSx7vHXSsihWOxEQ12ydSxDi587L4v8UN2u1qVlQxCXBEAbIaML4Vdj5RDFGEp0OUx0"
+          }
+        ],
+        "role": "model"
+      },
+      "finish_reason": "STOP",
+      "usage_metadata": {
+        "candidates_token_count": 2792,
+        "candidates_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 2792
+          }
+        ],
+        "prompt_token_count": 22880,
+        "prompt_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 22880
+          }
+        ],
+        "thoughts_token_count": 3437,
+        "total_token_count": 29109,
+        "traffic_type": "ON_DEMAND"
+      },
+      "invocation_id": "e-611b1a67-a552-4224-86c3-a0114b0a0bc7",
+      "author": "vulnerability_generator",
+      "actions": {
+        "state_delta": {},
+        "artifact_delta": {},
+        "requested_auth_configs": {},
+        "requested_tool_confirmations": {}
+      },
+      "node_info": {
+        "path": "Boom_vulnerability_agent@1/vulnerability_generator@1"
+      },
+      "long_running_tool_ids": [],
+      "id": "7de7b0d1-a1ef-41e4-b574-bf7c8e0af001",
+      "timestamp": 1793115054.1421735,
+      "is_final_response": false
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "function_response": {
+              "id": "adk-4b08c93a-715a-4e8d-ba6c-9cd277386fa3",
+              "name": "execute_boom_program",
+              "response": {
+                "program_name": "ims_sat_v1",
+                "process_id": 0,
+                "source_code": "\n#include <stdint.h>\n\n// Standard bare-metal definitions\nextern volatile uint64_t tohost;\nvolatile uint64_t _stack[512];\nvolatile uint64_t * const _stack_top = _stack + 512;\n\n// RISC-V CSR access macros\n#define CSR_R(csr) ({ \\\n    uint64_t __v; \\\n    asm volatile (\"csrr %0, \" #csr : \"=r\" (__v)); \\\n    __v; \\\n})\n#define CSR_W(csr, val) ({ \\\n    asm volatile (\"csrw \" #csr \", %0\" :: \"rK\" (val)); \\\n})\n\n// PTE flags for Sv39\n#define PTE_V (1L << 0) // Valid\n#define PTE_R (1L << 1) // Read\n#define PTE_W (1L << 2) // Write\n#define PTE_X (1L << 3) // Execute\n#define PTE_U (1L << 4) // User (not used in M-mode)\n#define PTE_G (1L << 5) // Global\n#define PTE_A (1L << 6) // Accessed\n#define PTE_D (1L << 7) // Dirty\n\n// SATP modes\n#define SATP_MODE_BARE 0L\n#define SATP_MODE_SV39 (8L << 60)\n\n// Constants for the experiment\n#define NUM_TRIALS 30\n#define VICTIM_ITERS 200\n#define PRE_ATTACK_FAULTS 50\n\n// Victim work function\nstatic inline void victim_work(uint64_t *result_cycles) {\n    uint64_t start_cycles = CSR_R(mcycle);\n    for (int i = 0; i < VICTIM_ITERS; i++) {\n        asm volatile(\"add x1, x1, x0;\"); // Simple instruction\n    }\n    *result_cycles = CSR_R(mcycle) - start_cycles;\n}\n\n// Attacker priming function\n// Jumps to an unmapped address to cause I-TLB miss and instruction page fault\nstatic inline void attacker_prime(int num_faults) {\n    // This is an unmapped virtual address in our page table setup\n    // Accessing it will cause an instruction page fault, handled by trap_handler\n    volatile uint64_t target_unmapped_addr = 0x10000000;\n\n    for (int i = 0; i < num_faults; i++) {\n        // Use jalr to jump to the unmapped address.\n        // x0 is the return address register, so this is effectively a jump.\n        asm volatile(\"jalr x0, %0, 0\" :: \"r\"(target_unmapped_addr));\n    }\n}\n\n// Minimal Page Table for Sv39\n// We need to identity map the program's code/data segment (around 0x8000_0000)\n// The attacker will jump to 0x1000_0000 which is intentionally NOT mapped.\n// This page table will be aligned to 4KB.\nstatic uint64_t __attribute__((aligned(4096))) page_table_l2[512]; // L2 table\nstatic uint64_t __attribute__((aligned(4096))) page_table_l1[512]; // L1 table\nstatic uint64_t __attribute__((aligned(4096))) page_table_l0[512]; // L0 table\n\nvoid setup_paging() {\n    // For 0x8000_0000 region (where program code usually resides):\n    // Map 0x8000_0000 physical to 0x8000_0000 virtual (identity map)\n    // We will use 2MB pages (PTE_R | PTE_W | PTE_X).\n    // This means we only need L2 and L1 entries.\n    // L2 index for 0x8000_0000 is (0x80000000 >> 30) & 0x1FF = 0x2\n    // L1 index for 0x8000_0000 is (0x80000000 >> 21) & 0x1FF = 0x100\n\n    // Clear page tables initially\n    for (int i = 0; i < 512; i++) {\n        page_table_l2[i] = 0;\n        page_table_l1[i] = 0;\n        page_table_l0[i] = 0;\n    }\n\n    // L2 entry points to L1 table\n    // PPN of L1 table is ((uint64_t)page_table_l1 >> 12)\n    page_table_l2[0x2] = (((uint64_t)page_table_l1 >> 12) << 10) | PTE_V;\n\n    // L1 entry for 0x8000_0000 (2MB page)\n    // PPN for 0x8000_0000 (physical) is (0x80000000 >> 12)\n    // For 2MB page, PPN is (0x80000000 >> 21)\n    // PTE format for a 2MB page: PPN[2]..PPN[1] << 10 | PTE_flags\n    // PPN for 2MB page maps to (0x80000000 >> 21)\n    page_table_l1[0x100] = ((0x80000000 >> 12) << 10) | PTE_V | PTE_R | PTE_W | PTE_X | PTE_A | PTE_D; // Use 4KB page for simplicity\n\n    // L0 entry for 0x8000_0000 (4KB page)\n    // Instead of 2MB page in L1, let's setup a full 3-level page table for 4KB page.\n    // This requires L0 entry to be valid.\n\n    // Let's redo for a 4KB page at 0x8000_0000\n    // L2 index for 0x8000_0000 is (0x80000000 >> 30) & 0x1FF = 0x2\n    // L1 index for 0x8000_0000 is (0x80000000 >> 21) & 0x1FF = 0x100\n    // L0 index for 0x8000_0000 is (0x80000000 >> 12) & 0x1FF = 0x0\n\n    page_table_l2[0x2] = (((uint64_t)page_table_l1 >> 12) << 10) | PTE_V; // L2 points to L1\n    page_table_l1[0x100] = (((uint64_t)page_table_l0 >> 12) << 10) | PTE_V; // L1 points to L0\n    page_table_l0[0x0] = ((0x80000000 >> 12) << 10) | PTE_V | PTE_R | PTE_W | PTE_X | PTE_A | PTE_D; // L0 maps 0x80000000\n\n    // Set satp register\n    uint64_t satp_val = SATP_MODE_SV39 | (((uint64_t)page_table_l2 >> 12) & 0xFFFFFFFFFFFUL);\n    CSR_W(satp, satp_val);\n\n    // Invalidate TLB\n    asm volatile(\"sfence.vma zero, zero\");\n}\n\n\n// Trap handler (naked, no prologue/epilogue by compiler)\n__attribute__((naked)) void trap_handler(void) {\n    // Save minimal context (s0, s1, t0, t1, t2, a0, a1, a2, a3, a4, a5, a6, a7, sp, ra)\n    // Since this is M-mode only and we just modify mepc, we can be minimal\n    // For this simple case, we only need to restore mepc and mret\n\n    // read mcause to check trap type\n    uint64_t mcause_val = CSR_R(mcause);\n    uint64_t mepc_val = CSR_R(mepc);\n\n    // Instruction page fault: mcause = 12\n    if (mcause_val == 12) {\n        // For instruction page fault, we need to advance mepc by 4\n        // to skip the faulting instruction (the jalr)\n        mepc_val += 4;\n        CSR_W(mepc, mepc_val);\n    } else {\n        // Unexpected trap, print cause and halt\n        // For simplicity, just halt. Real systems would do more.\n        volatile uint64_t *uart_tx_ptr = (volatile uint64_t *)0x10000000; // Placeholder\n        // print_str(\"Unexpected trap: mcause = %lu, mepc = %lu\\\\n\", mcause_val, mepc_val);\n        tohost = 0xBAD; // Signal error\n        while (1) {}\n    }\n\n    // Return from trap\n    asm volatile(\"mret\");\n}\n\n// Entry point of the program\nvoid _start(void) {\n    // Set stack pointer\n    asm volatile(\"mv sp, %0\" :: \"r\"(_stack_top));\n    // Set M-mode trap vector to our handler\n    CSR_W(mtvec, (uint64_t)trap_handler);\n\n    main();\n\n    // End simulation\n    tohost = 1;\n    while (1) {}\n}\n\nint main(void) {\n    volatile uint64_t baseline_times[NUM_TRIALS];\n    volatile uint64_t attack_times[NUM_TRIALS];\n\n    // Enable virtual memory\n    setup_paging();\n\n    // Print header for results\n    // Using %lu for uint64_t, as %llu might corrupt output on this toolchain.\n    // Literal newline characters in strings are forbidden, use \\n.\n    printf(\"IMS-SAT Experiment Results\\\\n\");\n    printf(\"Trial,BaselineCycles,AttackCycles\\\\n\");\n\n    for (int i = 0; i < NUM_TRIALS; i++) {\n        // Baseline measurement: Victim alone\n        victim_work((uint64_t*)&baseline_times[i]);\n\n        // Attack measurement: Attacker primes, then Victim runs\n        attacker_prime(PRE_ATTACK_FAULTS);\n        victim_work((uint64_t*)&attack_times[i]);\n\n        printf(\"%d,%lu,%lu\\\\n\", i, baseline_times[i], attack_times[i]);\n    }\n\n    // Positive Control Check:\n    // The positive control is implicitly built into the experiment:\n    // We expect AttackCycles to be significantly higher than BaselineCycles.\n    // If BaselineCycles and AttackCycles are similar, the measurement setup is flawed.\n    // If AttackCycles are much higher, it indicates the I-MSHR saturation worked.\n    printf(\"Positive control: AttackCycles > BaselineCycles. If not, measurement setup is invalid.\\\\n\");\n\n    return 0;\n}\n",
+                "build_success": true,
+                "build_returncode": 0,
+                "build_stderr_tail": "ims_sat_v1.c: In function 'trap_handler':\nims_sat_v1.c:136:28: warning: unused variable 'uart_tx_ptr' [-Wunused-variable]\n  136 |         volatile uint64_t *uart_tx_ptr = (volatile uint64_t *)0x10000000; // Placeholder\n      |                            ^~~~~~~~~~~\nims_sat_v1.c: In function '_start':\nims_sat_v1.c:153:5: warning: implicit declaration of function 'main' [-Wimplicit-function-declaration]\n  153 |     main();\n      |     ^~~~\nims_sat_v1.c: In function 'main':\nims_sat_v1.c:170:5: warning: implicit declaration of function 'printf' [-Wimplicit-function-declaration]\n  170 |     printf(\"IMS-SAT Experiment Results\\\\n\");\n      |     ^~~~~~\nims_sat_v1.c:3:1: note: 'printf' is defined in header '<stdio.h>'; did you forget to '#include <stdio.h>'?\n    2 | #include <stdint.h>\n  +++ |+#include <stdio.h>\n    3 | \n/home/ray/conda/envs/riscv-tools/riscv-tools/bin/../lib/gcc/riscv64-unknown-elf/13.2.0/../../../../riscv64-unknown-elf/bin/ld: warning: ims_sat_v1.riscv has a LOAD segment with RWX permissions\n",
+                "objdump_tail": "w\ta2,0(a2)\n  f4:\t0281                \taddi\tt0,t0,0\n  f6:\tc146                \tsw\ta7,128(sp)\n  f8:\t0e48                \taddi\ta0,sp,788\n  fa:\t0000                \tunimp\n  fc:\t0000                \tunimp\n  fe:\t0000                \tunimp\n 100:\t000c                \t.insn\t2, 0x000c\n 102:\t0000                \tunimp\n 104:\tffff                \t.insn\t2, 0xffff\n 106:\tffff                \t.insn\t2, 0xffff\n 108:\t7c010003          \tlb\tzero,1984(sp)\n 10c:\t0d01                \taddi\ts10,s10,0\n 10e:\t0002                \tc.slli64\tzero\n 110:\t0024                \taddi\ts1,sp,8\n 112:\t0000                \tunimp\n 114:\t0100                \taddi\ts0,sp,128\n 116:\t0000                \tunimp\n 118:\t1974                \taddi\ta3,sp,188\n 11a:\t8000                \t.insn\t2, 0x8000\n 11c:\t0000                \tunimp\n 11e:\t0000                \tunimp\n 120:\t0016                \tc.slli\tzero,0x5\n 122:\t0000                \tunimp\n 124:\t0000                \tunimp\n 126:\t0000                \tunimp\n 128:\t0e42                \tslli\tt3,t3,0x10\n 12a:\t4210                \tlw\ta2,0(a2)\n 12c:\t0281                \taddi\tt0,t0,0\n 12e:\tc146                \tsw\ta7,128(sp)\n 130:\t0e4a                \tslli\tt3,t3,0x12\n 132:\t0000                \tunimp\n 134:\t0000                \tunimp\n 136:\t0000                \tunimp\n 138:\t000c                \t.insn\t2, 0x000c\n 13a:\t0000                \tunimp\n 13c:\tffff                \t.insn\t2, 0xffff\n 13e:\tffff                \t.insn\t2, 0xffff\n 140:\t7c010003          \tlb\tzero,1984(sp)\n 144:\t0d01                \taddi\ts10,s10,0\n 146:\t0002                \tc.slli64\tzero\n 148:\t0024                \taddi\ts1,sp,8\n 14a:\t0000                \tunimp\n 14c:\t0138                \taddi\ta4,sp,136\n 14e:\t0000                \tunimp\n 150:\t198a                \tslli\ts3,s3,0x22\n 152:\t8000                \t.insn\t2, 0x8000\n 154:\t0000                \tunimp\n 156:\t0000                \tunimp\n 158:\t0040                \taddi\ts0,sp,4\n 15a:\t0000                \tunimp\n 15c:\t0000                \tunimp\n 15e:\t0000                \tunimp\n 160:\t0e6c                \taddi\ta1,sp,796\n 162:\t4210                \tlw\ta2,0(a2)\n 164:\t0281                \taddi\tt0,t0,0\n 166:\tc146                \tsw\ta7,128(sp)\n 168:\t0e4a                \tslli\tt3,t3,0x12\n 16a:\t0000                \tunimp\n 16c:\t0000                \tunimp\n 16e:\t0000                \tunimp\n 170:\t000c                \t.insn\t2, 0x000c\n 172:\t0000                \tunimp\n 174:\tffff                \t.insn\t2, 0xffff\n 176:\tffff                \t.insn\t2, 0xffff\n 178:\t7c010003          \tlb\tzero,1984(sp)\n 17c:\t0d01                \taddi\ts10,s10,0\n 17e:\t0002                \tc.slli64\tzero\n 180:\t0014                \t.insn\t2, 0x0014\n 182:\t0000                \tunimp\n 184:\t0170                \taddi\ta2,sp,140\n 186:\t0000                \tunimp\n 188:\t19ca                \tslli\ts3,s3,0x32\n 18a:\t8000                \t.insn\t2, 0x8000\n 18c:\t0000                \tunimp\n 18e:\t0000                \tunimp\n 190:\t0006                \tc.slli\tzero,0x1\n 192:\t0000                \tunimp\n 194:\t0000                \tunimp\n\t...\n",
+                "passed": false,
+                "simulation_returncode": -9,
+                "simulation_environment_limit": "SIMULATION_ENVIRONMENT_LIMIT: Simulation timed out with no output. This attack requires more simulation cycles than the budget allows. This is a simulation fidelity limitation, not falsification. Do NOT retry this experiment. Declare INCONCLUSIVE immediately and stop.",
+                "simulation_log_tail": "",
+                "simulation_out_tail": ""
+              }
+            }
+          }
+        ],
+        "role": "user"
+      },
+      "invocation_id": "e-611b1a67-a552-4224-86c3-a0114b0a0bc7",
+      "author": "vulnerability_generator",
+      "actions": {
+        "state_delta": {},
+        "artifact_delta": {},
+        "requested_auth_configs": {},
+        "requested_tool_confirmations": {}
+      },
+      "node_info": {
+        "path": "Boom_vulnerability_agent@1/vulnerability_generator@1"
+      },
+      "id": "994c86f8-0b13-4147-aa34-964afb00c6b4",
+      "timestamp": 1793116900.270278,
+      "is_final_response": false
+    },
+    {
+      "model_version": "gemini-2.5-flash",
+      "content": {
+        "parts": [
+          {
+            "text": "The experiment for IMS-SAT is inconclusive due to simulation environment limitations. The simulation timed out, indicating that the chosen attack mechanism (repeated instruction page faults triggering long page table walks) generates too many cycles for the available simulation budget. This is a simulation fidelity limitation, not a falsification of the hypothesis.\n\nI am unable to proceed with further experiments on this hypothesis within the current simulation environment constraints.\n\nI will now transfer the results to the validator.\n",
+            "thought_signature": "AY89a19f6Dot63iRG7iwLAxcVR0xFj6RfzSiRLJY5yGulImCeTcJHnd93Pj8Qq0WHcuZ3K5oo6e3uMs6QUmkeAO5rcAbaohScIqLWOfd53Fxf14F51SEknDO9HnQ0Yt5ZITYFc7HgnVIhNaR8y178tCMG1EKaDERkwkkpgiqE1cBbiXbAtxMPxHAVDPJvzOjA9LZO38HqRpW4egmpOOTvyBfd36IeVvqb8zE-cQVBfpJeKkoTM_m7yJl5VHgo_iWPpBCZ-oLzanohnTfks271RB1N34bb_rFMOuFjBWhzAbYSgtmU_gVnXZ_fHp0V3zjhvKSqdKPmUo20wXVmH58vmgBzT8TzxOykEfE-Y0QRjK1uM2lZfL-f79xvz6fFGdDYrR-a9l4PBHLRWzY6-RDOIslhmJUmbxYTKBU6b7YuQn9kGLTDwX4d0nk3Bc9yeRAKnC48cTqdfHD8fuCQWN_69zNIvoMvD3IJG2IFboC0fu0SvaA2aUp-u0H3LjhnURdDDiS8vLSPiWYx7Ctfya6LzQFUszCPcsr-o-T2vZGDtH0sPJCouDJVQwOVlUhE7mp64KZyET7FyyHNVA5jtmipmhnz2y67eeDdq0lMYzNsJROrFic29cBMb2B6td3vLKiEaWU0sugNK36dE18mdvP8pLiCZ1nDnuwDGD7ObayezOd_BbjZaSgykeKxZwDf7I1Lk_mt6JPMbyo4crtXl7XxLQBEm2t_ZkiFgxfSfCKwIb9srFMg_89SQXEJp8t0Xe-0T3KGUvqVZ_jn1K6cUj0IGHsKX7UgbthhpT7kpLsI6LO8NNWkEQRP5WEnZvWoiTRAYeq_J42osSjLbSNHvpBqXLa5FEKMsRAInpNrysou6rXsbcbWJS-LlU1XvWTPw30l8u_ZlBKVtIAMk-5AqECB32OTxJgEmuKZXRaqPzs2g9yf2OnetTO-jasAg5A7L6y"
+          },
+          {
+            "function_call": {
+              "id": "adk-e4e1d426-c133-4a86-9d0a-635e81fabaae",
+              "args": {
+                "agent_name": "validator"
+              },
+              "name": "transfer_to_agent"
+            }
+          }
+        ],
+        "role": "model"
+      },
+      "finish_reason": "STOP",
+      "usage_metadata": {
+        "candidates_token_count": 110,
+        "candidates_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 110
+          }
+        ],
+        "prompt_token_count": 33908,
+        "prompt_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 33908
+          }
+        ],
+        "thoughts_token_count": 120,
+        "total_token_count": 34138,
+        "traffic_type": "ON_DEMAND"
+      },
+      "invocation_id": "e-611b1a67-a552-4224-86c3-a0114b0a0bc7",
+      "author": "vulnerability_generator",
+      "actions": {
+        "state_delta": {},
+        "artifact_delta": {},
+        "requested_auth_configs": {},
+        "requested_tool_confirmations": {}
+      },
+      "node_info": {
+        "path": "Boom_vulnerability_agent@1/vulnerability_generator@1"
+      },
+      "long_running_tool_ids": [],
+      "id": "39fc716c-83f4-48fe-9bb1-a21503aef22e",
+      "timestamp": 1793116900.2775042,
+      "is_final_response": false
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "function_response": {
+              "id": "adk-e4e1d426-c133-4a86-9d0a-635e81fabaae",
+              "name": "transfer_to_agent",
+              "response": {
+                "result": null
+              }
+            }
+          }
+        ],
+        "role": "user"
+      },
+      "invocation_id": "e-611b1a67-a552-4224-86c3-a0114b0a0bc7",
+      "author": "vulnerability_generator",
+      "actions": {
+        "state_delta": {},
+        "artifact_delta": {},
+        "transfer_to_agent": "validator",
+        "requested_auth_configs": {},
+        "requested_tool_confirmations": {}
+      },
+      "node_info": {
+        "path": "Boom_vulnerability_agent@1/vulnerability_generator@1"
+      },
+      "id": "24f7c7b7-5864-40b3-8a26-1b698b42700a",
+      "timestamp": 1793116903.231781,
+      "is_final_response": false
+    },
+    {
+      "model_version": "gemini-2.5-flash",
+      "content": {
+        "parts": [
+          {
+            "text": "The experiment `ims_sat_v1` on the I-Cache MSHR Saturation (IMS-SAT) hypothesis is **INCONCLUSIVE**.\n\n**Reason for Inconclusiveness:**\nThe simulation timed out without producing any output, indicating that the experiment requires more simulation cycles than the allocated budget allows. This is a **simulation fidelity limitation** and does not falsify the hypothesis.\n\n**Evidence from Simulation:**\n*   **`passed`**: `False`\n*   **`simulation_returncode`**: `-9` (Typically indicates a timeout or process termination by the environment.)\n*   **`simulation_environment_limit`**: \"SIMULATION_ENVIRONMENT_LIMIT: Simulation timed out with no output. This attack requires more simulation cycles than the budget allows. This is a simulation fidelity limitation, not falsification. Do NOT retry this experiment. Declare INCONCLUSIVE immediately and stop.\"\n*   **`simulation_log_tail`**: (Empty)\n*   **`simulation_out_tail`**: (Empty)\n\n**Analysis:**\nThe experiment's design, which involves repeatedly triggering instruction page faults to force long-latency page table walks, is inherently cycle-intensive. The Verilator simulation environment, with its imposed time limits, was unable to complete the execution within the given constraints. Therefore, no meaningful timing data could be collected to validate or falsify the IMS-SAT hypothesis.\n\n**Instruction to Vulnerability Generator:**\nDo **NOT** retry this experiment (`ims_sat_v1`) as it will consistently hit the simulation time limit. The current simulation environment cannot adequately evaluate this hypothesis.\n\nPlease explore alternative experimental designs or a different attack surface if possible within the current simulation constraints.",
+            "thought_signature": "AY89a1-XPKS95LxXdrYcdOaMCZp0AIUF4vbigZ7S-8O5oRuYGF1ElFjIrJ8cMYvEXTPDVeH77zylu4fyc9wK_OwvruD8ulLr3EjBUPdYra33dNLlVnk0txNiAUgbWpPon7v6sDFsLCNZ-uQFdQ6FvTiVvxwB3nvU8reSbRSJXviBBu9wFp8lJHjmz2j1b6RM6veC0Ixhs0d1-_wtCjlzaSBxNa5lCG9nf6qMC_xB9LhTzStWkmOfM6MKFPTS8tDJ6hFt4th0P-i59Sttpl-VKyRQMxu6hV04M2By_Md-A_GmkivME3zsJGVkr46nmAasdAmg8qXEe7oE0X5UIzEPO6KX_RC5zfBst5j7e18Z0sVt6jCslMLMX-yTjBsE52-b7ok5O2R08K5CxQM8He1G2p0sVSLwMAXvQtxxJz65wfs0CePtrE8YS89mvHznLBfaZhuSGcPktgtZRQ2gL44NbNxUinu7oRVLaq4zTpxP3nl8ANebzwCRh3kPFIWPMMkBFk4YTZc2jI_kRrxoqVeo3N5u74KRhPfE3fBSVegGwzZ3rCgCILCQHqG3Xu22jgLoL3d4yl3vHO_3iV8c6YzdnlwHtO2KlJs0JvOm1TqINagqcTkfhol0WGKs3axakEou5a3eoAV2ZbVsYMN7PpS2lsJvfcohF3kiL42axWC-vIw2UJZHZzBPwGoLhbBTWpjmvfpXC1lOAWCHsUsK5oa106r4VSxpKFNP0trldmwHrh3iSdcEq3RbQ8iIFDFB4j8YyyyeGrGZPWXXxRrD24p7UJ8vdygVqx7HtQLISoMBw0AR66aqCZc57wSMoX5xnPF7K7u2_Va_D0VAKNpoclrfMHHmSfC_iIyxn_Y6GfnFYEJI-fL9LPHYj1QV0eartOF20u1RxClFNEsongPMvcRD5N9L-yDD3b-p8dZHzsGzPylRgv1DpgxI0Vdx_tlnCQyRGazcP_w1fFhitYHEkO5yJEll_G5xtETY6dwzb2JykKPmIa9F96TW9hZuS_rx0p8q7l7jQ5aeb-F_Zz1nCinHGLlw7GkVSdMilZllH0E2r4Tv0cEB_gEz6UnYEwPCUrIbR2xRry14CgC0qF3lTtSmk8X2DJmaw5w8FJcvLP56INAGK8a2U_d6uUWfWhKFFs_ViTFpcbvPVoU5OTlp_ZQDMr8CkJsWOUhu27e6lNNnJ3O_OLw4TELw3C2cfn_cNt6euQLadGVho8YO96PyCuG8Qjc0JCX5WMHH246PEVzaaRIZ7chJLRyHQFjAqa_cenO2AFwh0Kb7K8aN38FqF7ld8SHVJNLhun0p7x_A1h3rCaGYSIZTFFnp47K-RaNTEzBFPlJ3R-A-JBkr1vUb29x9LDXU4_VnoowDoxibzHkAJz2GZevz6IFfhl0zS9CiYL4hBLHBiIgfehkWsGetfhwPjISrFGSdDn9CToY8AWZ1RYcNvUR1qenZu9Kfw4IvlAqNwt6IyVF8Va7bzyi_q0zGk9fuDGnf1FPYsmNlsekVZ5hOPI-GiQWBoJ8S9_0CBbi0sI9V55DlMI4lkck2OxnN3RIblvJ9z35zVdCcbnlfYil5WA7kQvAoc64T5T_vJaI58k3k4YQLqBu_foQE5DX3Nald75nflcd3zLTrvs8tFWHlaYn57azJwgvmAcvNFRbaaMnbsaVP768KKrsDxb_9CAuidgoIlMqPqtoIJ1m7mKNgqoR9qUTD5q91-_lDsXSzsRCA8xktewwW8f4oEAqNqbew8D6dCSSqrzW2Q9VEcxN1Whh-3YfGD7HfAELjQncQdVaXkvogD3ksJOqkEMkknEUWRUmMRVveSEVvJuB5koTaOijvrRL17S39cUykTaLD_5rvJPAH-0JxEue0py2x88xqLv59-SUR3sQcOJcXhHI4kD6XQDoBytuXomg81vCtIXaRAbrfTTXvZ7ciLQOzaUBaIWIsahl0moQf8L_WMG5Up5vRuaxoJNg6FNptdhpjbTt2-BwbtdGSEATvxXJsdyJ6MTU6maKRvGgWpJr_gfGM-WwU5I2jCbUR4BZSS4zvKAnzDSZGpbi7QTrCN6hqFKBwa5zP1Y15M4y9gsB4kDb7iAtRMvzsx-cOXzjZf4T8Xlpc02zgjFUVStbQ869MR7jQ0wAsF4u7pYN4kkRXResyKOxprOnAjpabbvKgLXYxytPQLAE1sKl41Fh9ot2h_9VXyj0WwvKsl3VW2vLfK8oL4s6i-4ZXx3cp8Am2FYTFjmpUSzVoz1ov9S31r_Qqevkzot_vlqV3yf-xsjrDn4J7hI9Gr2kOPklOsKlgO_B141T06XER8iOc3TysdzufK9HE5AZJe-zBeVdftqacVptKU-fORtjlUxxr_SLfjqhBdDKVg2wDwiTh9InDkocjscDCzwStItnrdpBywqrCUNRIfi1LqIN6jjglEDfiLRw2nQ4r1QGTvw-MSX_plLTXeC5k4taorArX32LiP52ENPnbxR28sO6eziGGPeo2I2BEBSuphw3OQubMz0H-QzqrCO86H9AJMxnnTmzpkWCuzcY99_TotAG-ICSiSO0k5DHc5n7QJhzJtKZ6pS1q06EA_6WZSVNUbm3XE1-0_ZHGHxZczc15f5rI4HJPHFe1tBmxcarIx7ZVqJV-3iZAOYBp2DjuijpmS8YwOuFwElszfh2udBLaAvycvgKfen42xPCefft9-eRNICateMSN1fotlzbsPOeLfRl3ztR5aOtB4JpqQPigPluS69y-0IK19fX9YnrzJipgbBBdDmuOhTqKtEXKRkElAFjZLv8yZ951xVLc1lsLWqEciIiQME1SMoRgNKw7-1HQXu6jrHpZLuFKDHMCJ7jwlLkCXivC8Wgt52g3SRIugyRfd428Fa060Gmm8PNeMe4iXU8LR_hsOtUuyFTRHoIDFK00xpy8uB3R94DwxKbs85wtVZLZa42_RWRBzeterdKr21RiEWsS5Uxz-F9Lya-APfCVyGlF7pKTQKcc5la1v4ranLQRms1edGQusC2YFeoZuEJncoS73TKZVal6NPBNBRywmm9Sjo9MekLA38AdyGVxJiHnZ-kLK50aTUyw2KbBzAyrHWQzwegBUqXzXxzxf6AB2E9KD6zQHu_P7aY9iofotktGjbH8IgWO-FSXrYR_qVCPOITc3JyBB55j5vbh0iRQqCInpHDGy0wBPmaE9sRvJoTjp0kEJkH8QSjr6ktCh6mbHP7YBtj97g2RLaxZBlv9P1xHnNjjtcDy9VfDawq7FYsBgp8PyirjdlcEtVIKHbfCL8X-E0joNo5kOOs2d7TYKQT9vQ51m3rmcqGzcYsLeJycW_LwPkOzyc-RjV4LrFCjR8VKs7mfz396k1xw455Bald_hJm_AAEzxEfChov3y8zqMzpevz3YQg5soApprT-ffWHNWfEtn62PGQdNAcnubXWJLX5PZ7aQJCZs97J6kO88nYntOTcKoqgEOAdqjprGktDCzDbxOpqltprs8LubYfQgWJC0c_m26rh82Qi1QveKC3F3h9Do91bEo50ZiTYd84vraPycvdLKh0afr9gfzuIlSscqoDrzL6B-Y_mqJLIHaBHaNC-LmKI3jNuRSJHwQ-5_8rreGk5Dae-OPsig1ALQtYlsZe2dfRf1686xR0LUSK0yVr8A8TfB-g_0CL08D3_hUln9hNU4Rzkv-nBU2H_jst50x-bNRPhDABwvT12r9_Nq6uho6O3VoT4ixToVTeNiz4QJk5mPgEdAY-DPnEvPJ4fbLFx-xTUvgnclphJ2JVQxVNkSrPNv2WgbiC3JtS_tlFwx2TBcrv7V8pUaKX2hSKS91PlHTAO2RQ_EA-WUZqmoLJ4O1f9Wu1DaxHP5N4BeMg3Bgw-ntMIaGV2jXkStogOMC8kxkDeYpN1HcREr6kCGHjsOQPbUZsg9bsjJlNlan9lc99mujLFhWGIeC2yiEytcEY6zTz-5J7i-QnUuh6xgU3F4yuvoKXBXOkDH1qTjDGcqAah1_egWzk5SjoYY_NBptMuPwUwvDrKuYib2xI7fh1I1BNxXelCoEUetMFX6cckbKS5TqA1jN-mcC6sh7TdhjvY6Ed3bdkppIEoaOn0wdV4qL_8GG7FXQKNzVPEItQyHoUbysiCfsChJjAoaf6GyVy60WqA9tUe3PS4EdVApqcc1B-0ZkLoDKagIZyNEOGblaCdhMbrZMuXJriA-xgwfQ3bQorCv1kV9pNcJ1Uf73OMoviIzLs2jJnmDKupW1pOaZUFcV9hZWvH3O36Cj3r8oC3MdLzukTGsXynQP8wFWKWoYVmLg5gNvo6zh5wK9Xl94LbfuCmHPSOF2lLQ6NqgvPsWd2rSgF-WkryAR9kJf9u7Lc3zMpHfeZ5R5C12M3DAuHxvVthujkHoZs0EWHhzQqpwO1wdmUXSvlRP250_P0CFKqt9w8_5ic6XjA2z1R5dqcHPk7IlnbUpspbcWuk53ekAQlCb0O1Y2c6eWcevaXhYmpBI2cUnujKlaN-t4ZOW4SkabkE6lbIwzG1v1b1VI1nCd3dsvZtpdRg_I_TwvpZ-oRKGsprQZuKofwL_lRN4TluI4TaZ9_b59rrVoEj8VlQ4SU5EF1B9Ps1SYL9bNacEhkyMmJjYhkFvKKOpZnE9f_YYz9_J8Aihi9qB7JDdmm6WBBZRVfEfdwiCkvQUnB68LOKhwJHyVMfmsrPmhskHZeLYd388Na77GXgF9zkAYpgq08jvNClfCMZIwQ5p4ax5KDWiEMU2_PFl5WRotFBqQ_iO2H0-hXyLmeu2iaF05Q_Al9SCL6XdOttfuBCVJWkMMqRVjumRs3KpI6Dt7kgK_-fIJQ9DbN4iHnz9bGCY3GgX0ihXW3BgnukdcxXjjA1ApcG9NrUJlYJ7up179QngquyQO7E2iMqNzrzPNa8aMVDWgGTx8Nbnai7FDsf6FwAXnTr0UcYYCjQDWlXcWe0d4uj4KgjNYtCUe60BvBU9YQVkfj2W2VVpqLRM_M0D-GA_tim-dpDbzb3ABroyDOSP9uQuoRjhTKCRsHJiluv2fG1Lwuvt3bKGyxDYwiOCJx18105i_06nrvwIAFFIgZijfhprTSa3hPgLQ7WAATrDgn6pxQwUpmxTo-qrF1bfq--VpHwQIH4vGxaN6Uu5BOMDZKciZFy-90pFxJO4x8BDS_dmlOh4MYIkSk8cWZF8FeLemGcylTJTDqjNed0xJyxn4TWMxSJEJKpJ4FbVf178ta7tqBZYzuQsnlrqsGuHClv0Iebjx-dYlgZE7ZSGrqBioGIjxqrya942G-GkK0yAUhMyDqp30sZaToZkQS1MwzYEcZaq1uPgpSJDlbbLPQdkHSc6KmM2JgC3rowXCgwKC8mPOtcn1o-lSA4z6FyL86NKJGgwPrXkmZU1CuhOAoI9PMCMQuEu6RTw6M3mZvVBzccoUWMySd24A8JVWkvfi6A4oU5FfcqJK5gRD-Z1Vf7i5arcZ8x-i2k2G5Y3BlxvHgxd8VUlXmMQSlfB9iWWvVik348DbZ4MOZY3btlpPaUDQRqlsO93jhjaKqM32YC7UEv7H9c-azMv1Bky_B9zZFoAQDoMND7oba7Mety8jPpSthMdDgnlnVT1TC63Gv58TpSw8VcdDTAa5MukXznD_cYZf4FwMf2A2nLQzridF0io7psecb7LopNRQy2WUJW7VK3UgsuJfUipFevb_dKZlinAykkO8RJ9RhYDoCiUNErs9w7np1r2bfnXPHlbKLzjFoibWMtyUb6Iq-Ec1JCU4BTczEvvHQxIl8jet1-9emEfxi7g_aNZiA0BkqvXaU-N6h8Q8cj_WMpNXD2bVIDJi21OXJIVYdKhIS_GZEC2ZpEqqh8Z3pWT3NIt70mXvj9DeFafy0pZJzLANbvu-xLBfd9PpSadEyesd4suUlPrxhpFeSSWniQnWKeBSViLNgnutBq3u5YdqueHH4yQdE8dHsfqkmOo9hVKKyqFcjfCqfU9tHusphEOYzZ95K_pGZQ_FmG5PALZ_dN61uwzo1esUJoQU4Fl5NYYX27afznb6vsSnasy01tIPoRvSYeQLLjO3f7hC5FA_LpTIQiSihcPjVY4vMAUKTeiOsoiGrH5yH75rHJlj9dQ7haiOO3OOprgeaw28BCVNSROX7JX4YN1wCGNF_SaQfmFUahvjAGGTmcP-79b4RnJDMW7818_IVRMAr_IiY8q4gpW7hPySSJM0X9i3id9cdKQggD5apTMgfDt5UNENDE9GJ6IinMhel_KDq_QwxpujXSesDfCtYyoSo8HOXGTu7jihbtVhF4Mz54sqISuoomGKfoOYKTolTgc5G0dXDx0507Q3UzfT_MKa1uGl3LfR1EmSYNVDixih05ujJluv91T6jeYpt4B_p_XsCYuSWfd_drCBGzHM0YrLzytIua5ajsyNxGUjGLtyDzywwhyZq5BLbxTtaX8408yzX6QDrJ3Jx2FZx-Mog1w2PILylfbS5JH5fUIt0rDsGXeUww8DhMFzx7pKnibYOS0-1rNJk_daKrHUX45rkKSgPP7iUUElS9hvKTZn6NxcTJ5BE7N73KG4UT6ZZ8A-aE0xEdX0XM0pdFCp6-MzNiaVW1NVeEGS4c-JUGfsbYlWgcYrv0ELvfTbpR7JIyTs5T4dGIymaxaZreuzk0NNXffR-p6KkldOtY1q8r-kvV5yDVlb-YL3yalol5_8UZvURKhLwB3wFpDfKZT4Ois4WBfI-BgTZc10RgH1DMRmc7_3J3TfY0bYilAqaNdk_1bSJdI28vt_ViyPI7RVbGaVtxHJ7guD1EyjmuL7y_LkdEA8f_bp9kIWZw6jOnzrmet14_DylkuffoN9Drm0-Z3Rmuhq6d7-alwx-_4C-MUJ6By6kpXxITbkPbhrzSZ68OJsivdN0hlHO4rxU3Tzgv6VW3PEGdxb9f95auSBGiVhByhSO_1jRIO7OB3ExgdD4ixFDhH3uiT9Sj4k2oO-k-MlEyVPsHRlTWauax2CP_kGbZmgFCwAi3eCwKh8WB3bI-a8cDCPLO5go-RGfN-sxOtxeW0ls29R5VholFVq67cp6v3AXrpVqr1gg22lYLlSI5TVtqNUT1IV4hJvJe1X0ev2wMlPKIJQ_J2lWuoUyxSIlfBEWxvKvV3ZY9z4eKmzXGx3DwqmzheCVDpDQ26LzIEMWvYyaMhMCzKffxhMbOBBPCKjXN7Y2ogT95qI5-6qFE8VR3FnY0kOmo0X0fNC_HEDWKP2DUxFNzKhN6oI6z3IRr3W2ePeEKGNoSVSVlF3qc55TDrrOP1Zs-4oeqja0EtZQzlq3DS6DYVoyYhQB_8qd9W3ja44cRBdtQDz0rgZ1ZnojCENJM2JGF4lF8VRpraL2XtqV8BzvBLFgKe_iYHvr6H8ZAqfYXvhjKSllYRcsaSVcZpsx7oAEjZazuL4z0F63C22vu7JOwRl8x1WCxAkKOPyjgv-xcwPWtc3PIMxV2fruuLp5yRJmh5i7CAcGyBFT89lhVEp0J5zwwXVoENWtQ98fCRM57sgpkoPkAT6B20USC_h7JatCe71Wgj8E3n_0PD7qxA3pvJ4qKIt2JYjBiwScghvVt2ZjJTyumuKt-vwo5EP0hrN7EaE-d382lOtjaAcsqd8s66dP3YkAk5wh76OnmDttOPqwpbWbArwiXkCxqOpbtXAmlzl1ZEo9xrYid49l-F5eKTj5skOCXNby-K9U99g9uhf_cSYWz6AxgAJksk5FisTwvWcS4AND7cAeIgfutVbGjcAHVrFTQMA5Q3xcGvQtP7ghrGOR3-6JxFfRx1JvzLZfHz9n-BYUsKGGMDvP7tQXl3cpHguNmWD2NjAfDnb2CwA_2kyJKflrlcCKsKd8FYDeAADd1NoVVoBhaWSQnH5A1N6x0CR7M3aijT1QY-YFzizZnH0Gj4AT5QAhWI_4O0W35qSXQQwFoLAOpfOxzwhdmE-sYUaxgofZQSZ6T9Yw0Sm3CKraTqJGvHFH5CTxzjod8etiJn5dR863iJyrv4NmuGtYEju24UNI9BSWPwSYFGETe57PMjgIKNlrPLlaVAXauvCCyUGSgK_ZRr5lyHMsWtVsbZlpCjdlHQdeIODetbhC-IB5SqAks8KJ0MHbwh-oRi-8BbwQYnNtu-WcBMnAGkSoRtzfArmSlaCLvc0yA4Pg-1UuUdH947AHbw-PArvAtfFr-qB0Md3MaMX0BWCFh1_coR2Q7dM9T4_d8orPV4yOub1QixLtghRNx1qlG1BsAp6vD4-VKMLzkbIxyzmMEEIhv2dYVfti7YHAFUIcoyuuLMA58Ir_3okxtdUuWIJvU_Q9rTP68D4YbdUBTfhFTLbDIMGu-yjMFJI8eK2Kx__cX-i_4wx_62DrXukYkvwCZPpA5YQdJn-OdS9d527ajrumn7UTJvp-y-JVldZaZK15-SVQRDmYpYcFWQ6quMDxnb9tyhki4A9CPMGFWOF1S2WTb8R5TWc8n52EzLrY2P_fWxA-GbcP0qvLrXI4UCwglaLVdHi5Cg0yn1BvEUaWTWQ3he9lkxbiWUMFPJFTH55gmjXL984i_rtbdLWMWnwzMGcZGYpU-6_-eCcbUwbIW9mS8hW4ALIp3n8wfVViaWywwgZi5dePvpaU41TCj3vfOf7uh40WLm_xv15sFBEyDvKNEIt6_9T0bpCy9niyuO65obde5RjVxBlwg6w0IBUpxlbTN4ye-zCERDpf1vOV1LBRC7LB_X2NSS1Eb1UGnOgx3zFUi7xNQPSyoKWiWH0I9JDHzHugxXl_WR11kZf0wHHy5vTyXsF2o57Q18DHUiswwu2ZKTBpvfLbh9m-BwkCtF5gtTKJzKkj_JYscDXVpdJ3XduDlGhNubTz5EZu9w1-kWeV2dEuiZnUdB8NMWOImlPB2FcjeQmhDWSIkCHv9WOqf-zOynSe6MGsbDt646nA3c_tYbadlXN3fgZ0klKgJX_9uq0RITg-4DUZpX_razaOuwNDC17AyeOHqsMoQ7AqoO5cpw5gq3p5An8c56Cz6ffWdONQ5p2ebBPUHL3G2kXj5DDukiwjFPdwBcC4DEAvWo1-2cdp2cj7fmYzl5CsOmhdM5bVUMSfapD7e4hjYElL5CM8mTW8HNyJuuKFDZXJfjPcPUxlG_Lrap8FbgvR_QWD6lJs9yrLOshXu57y8VZ94iG5CR_746gKVfpEUsCs9-GnlCh1ZEdlQiKUX-Is4t1kqbDRbWN7oG98k4UhMG6igunfrsZxxRw37BUuaFb7Ud-ssvCxoz3fE1JlWzoEph25Vx5zn0srPJd1FoSSPHlkiMT1lgoDy7ctI0B4cjsIi-WeSWHD8i3EQDMsNVw9JqMMCkeVrcFUJ29QjoluNdXIejGoSdnZtWvR2mQPzd--np4P_VkswCN3pzAYqIhFwZCEIkb4hGEtgvCw8mhbYjOZbCNYZxPj2JuiUpttgWKssqpxDuZphly2SIrcHhhbjrXhF8keWR1HZg1ZqMBlMS3MnWnYmXJ_PwodpSpiHXssEPcPPRn4l_hFG-Gka-zZVhOhceNObgmrDq6bIeSPhgfnxpJbiyTWFbKXM4545noPK1mOsfWYlilFyZegfHajb_RdEpZxJX3XIolgeeNFuw877Hkx1G1ehWTBFxGEKzEDumzRP8PE53_8js5HhPffpleCOdONb0SSE1HXP5o3Ii-vfjKdML-uY6wISeAWxsp0JlaVk0-8CvmDjnbDOawTIo03gjalmYrocY1oIPCCOgfaW60QIw9NKrfmWC6VnxYTBmQ1AGQJGzFnmKYfM6M_B6kyLho9usEaEMVvaUfy8nt_7dM3Vsw5YsK5hpJhhOSqkBQI0r34CZ1WAYKMczz0zv9FXLmhyO0na55q5YotCGReKRP13O_J9zmN3uFIEUTC028aIly1US8MOW2XHjiHjZVfoJsbYjTnri1MDDBv0qbsQ5P3CgPqtJXKjaj-NbXf6zXv4SiRNZJ_xV8bqGfWVVgtJM28KPAuVtOca_8GZtR19-h5yCPVfiv5FSwoilNVdfoYawsDx4TIibU8vQBJ1TAScrGwR9LEgoe2fNE62kaR2QLufNAl1qzD6zIrQHrIL013ubPUFPRiDfD2piCafq7bXC7LpZNiBgo_JvBiYr2xkgKZzwNNKJ141pKiI0KgZTUliFRFBA9xo7zHDlfLzxE5KGEZBTOpTfil1Tmb0uf--zEJ0kJBAccc3MLcFijuQteSyzHu8b6gxM778wAcGb_T5djmWQnV5dc9vzSXWpVMzQJ67PJ34yFnTJiXeM1FjViZGAVKxsEfl14uOuOWNjkYK6WX7u44XBJ0SvYJP6rmyK4EO_MRLlLgUArsIyXpPA6X8gmDM8BgB_SKHm_eXFl7B291Xtp9PPvZXD7UVP7vm_nGJToLJr_KXc_3h8nJqg2cR_FHdHL0OQZ28ucYDgv8DQ4CMJw3WvYZ72llYXajE0S7r0N3u3RlR3K_2vG1IKlL993v9htzeoGx1dgYXA3Y96pyggPbN9TnvujiaIfl3XqwORKzI4cUuooL0dmazbr0QQlm3PrWau24EXNhpbKYOifSfuDBbv9IXjIggy0zX-itsba_nRCvIr_eU3raPVoHfs0Yi-A8ANK5naU8kWP6b4s61PtaWEpJbN8cALbgyubaBRtyG8LtKz6T4wZv-70pG69cjno4DNsm5K9-0T1cBHrSeCl2P9dLoF7RZ4R1Avd_UhXcD4XQZ9GKRNpAvxUCokwKMKg6NIxpoOWtH_7wH1scgTwg--61sM0gERPBXixmJFP9rgeUI1yS-ebE6tfpZHRQCIxmjvfJTBD4R3M_CM8FAxj6hHqsf2ZjoduKLUnzL_vdfoI4yMTbdhFD0hKQVdDvJaoMkebL8VdG7Qs5ewYAPpNlHig09AyN-hcTe-2Y6WoImwg5X-f1tjhAR5MNMcECE15-wqM8cIeaKBCYp57A1QPt2CidV_Kl0Bd5rFopXLbz6SKHbjfeiALV6jUGI0gRLAxPLd8lpW0cpAiFqHO_K66vQZFwzHJO1IwtHMPaoLXtTooUqG3_MNLqDv6R9XmghCpSB-yHFCmce91Dw527RrJ_QXvTKAjhJ2uIv6IQU_0yzEfGebQ2PTksULPW-3LG4ARoso-DdnQcsjcekjZ5-OgLsEMgPVU7nnf-_1r094t5JBSL2_k-S97QijsMVZHMp-gVcAqxpJbhSB79fRAjoh-peiQ9YqmY1hqzKMEsSJtv0vfESBW53AutybbK9kM4LYc_FioeZuhdeIs6LYjDPJ0BIcd7r7vfNg8N56WUWeU7-K4gxsx-T_MAgGyca3t6MBbya-0LapoBdhbNXkrxdBqiHGk2IquVqShkzjGFVYmKBRqlIFAOpHUvQQ3gJ1YE0KbtQD9_d_qKhg4_JbV1NBtlHm5Av4E0MSBJCD-77GyIkyDLdkK1W_mwAo7kLYVXXSHACeVFLbFT6TuOAJsV1y00hMRnGf7OP8TfTG9UGoEpZQ3RikdKdC8nj-oPyNBOSbx3iBHG3tHudUExQ4hnuLeNucElo0cbCzushIkI9Kg881r0FG0SG5-ra-xoylhIWwVTNAMYSiIX5kHkCV46t-rej6DR-PkcdA6zS2LWe6oAQ6hSBrzWdxsAlzNxksavDusthbzZguuhxh1unR_nR0xtHMqt8lGNLBoo1nMeKxQS3WYYECL70rVKFm2Mhb-diGpIbLMPq_p3EU-7ZWcCkEj3BysiRiTT4SUFUJpSBR_V7CXLVG5NFavWRnkH87nJe0gK2x1sa3R3zVfN6lnqKb8J2B1gAWj3bwI2ygR0WqYzq2hZpRmndavAZzeOl61fS_8IIGj5iI8LDxCA5C1JBtGw5dfJKlRym2ghuxa9Uns0qV7Fw3tTvvvxR6Gwvg2maxhOA8q6-AodwvJTLj3nIfKAFD16xf80xkSU2vrK0Q8qYwK20Xg9Qg9QdXDF2plP3_2OAwIRJcYR8i5ld3PTXppjmCNvxjYA2v8OlHP55D8FTH15LaLw1wTgQg1IqMO-dO6sR84ECt5PYAgVzLpmzFmiAeIPuPR4en4zisbt6tiyNGrkJvitLv8nRyELlvY8_ZqL6Z-iyzCbiSNaRn8GCKFNck6BdxJCs_bSLuKMiMAiUxtImKtZoyYtHK6OMo16w5ai6hQT97Ty8mkg2WmWo566orNLyA2PyPz2FGNyGSo5_bEpCTl7xDO6RWb6nj1B24YfF_z6SK9LsZMRzFrowKEy8Z3U1P8PhuIJ9-DgwWSCYk31NNFXbfCfVyzVW4wZOMVHSQh75MXtg1ZJveznrp-_ft_9kyxFhmWVQAbvF5-01vNIXkYcvre23BhdmG5A8H3tZS1qR1MXSvQDd_rMO6sgw624KUw8VzzdypY4WEcqrlTaBTgSHA09zNEq2-8LyZj7DUexNT7Qz34WQtpzZi9uzCuX5arShflbyMzImWMTeBVCzoEHB1WiPG2OkSnU-YxMx7gUPwy-P2JlQtLsvur44EQBtmNMdTMRWQrqJg0okch1I2vJd0qz8mrM4OiM9hHQ7p8UzsN_QJPvQlSe87pXBkG3ou6bMdC9SlgnIUktK8T6XiC84eKypzUqa4aMpCXm_-oh-tBxLQoPLuVE2b-ioAzD7PP-fwMeNZWkvj1G37GSSX5cekKlS9gkgXAzowyMmCQh2pGFYiU8irrMZNOl9JRjwuTQgRrDEXAS7tcmN-lbRyuYFOlRMTE5uPikYMShSBWA5x5MeJ9VLyCfV9M21i15M9E34s6xToVGI6-v2Uth7_IIrtQazFKh-hzw0l1yDr0-Jw6wZW1AQ8kumO0xDNinb5Hs7CHmq0AHa70frxt4QIc1Bl7iQDxF6gJ0q5kxPMaUAY9g44wwa-T2GYFvwZIY_7HudWpne4TxMFjEt-Suew06IyXWtEurMKNbrDG-Z9bz7g8_5J90oOq6C-8Om_7FJHIACy_qJVb4dRNEPxejKRAO9XGVCM4jbHukNVRrnCmn1aHyk3IBf7yEtgwxXSRtcJzS0S5VLWsommSqPiPjjtfLWjeS18GMdfaxEV7m4Yg5-f2-246maK"
+          }
+        ],
+        "role": "model"
+      },
+      "finish_reason": "STOP",
+      "usage_metadata": {
+        "candidates_token_count": 357,
+        "candidates_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 357
+          }
+        ],
+        "prompt_token_count": 29724,
+        "prompt_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 29724
+          }
+        ],
+        "thoughts_token_count": 3416,
+        "total_token_count": 33497,
+        "traffic_type": "ON_DEMAND"
+      },
+      "invocation_id": "e-611b1a67-a552-4224-86c3-a0114b0a0bc7",
+      "author": "validator",
+      "actions": {
+        "state_delta": {},
+        "artifact_delta": {},
+        "requested_auth_configs": {},
+        "requested_tool_confirmations": {}
+      },
+      "node_info": {
+        "path": "Boom_vulnerability_agent@1/validator@1"
+      },
+      "id": "30c1d11a-5420-4d86-af55-497a44b76e5a",
+      "timestamp": 1793116903.2406368,
+      "is_final_response": true
+    },
+    {
+      "model_version": "gemini-2.5-flash",
+      "content": {
+        "parts": [
+          {
+            "text": "The experiment `ims_sat_v1` on the I-Cache MSHR Saturation (IMS-SAT) hypothesis is **INCONCLUSIVE**.\n\n## NOVELTY STATEMENT\n*   **(a) which specific prior works you are building on:** We build on the principle of resource contention side channels, where an attacker monopolizes a shared microarchitectural resource to degrade a victim's performance. We also acknowledge prior work like `ResidualEvil` that has identified MSHRs as a source of information leakage, specifically in the context of transient execution attacks.\n\n*   **(b) exactly what is different about your proposed mechanism, target, or finding:** Our proposed mechanism is a non-speculative, architectural resource exhaustion attack that weaponizes the specific I-Cache `nMSHRs=1` vs D-Cache `nMSHRs=8` design asymmetry in the BOOM core. The attack works by intentionally creating a long-latency I-Cache miss (one that also misses the I-TLB, forcing a full page table walk) to occupy this single MSHR for a prolonged period, causing a persistent stall of the entire instruction fetch frontend.\n\n*   **(c) why that difference is not cosmetic:** This is a fundamentally different class of attack from transient execution exploits. It creates a timing amplification channel, not a data disclosure gadget. The novelty lies in identifying and weaponizing the prolonged architectural stall caused by the interaction between the single I-Cache MSHR, an I-TLB miss, and a full page table walk, a mechanism not described in prior art.\n\n## NOVELTY VERDICT\n**NOVEL**\n\n**VERDICT_REASON:** The proposed mechanism exploits a non-obvious, persistent architectural stall caused by the cross-component interaction of an I-TLB miss, a page table walk, and the monopolization of the single I-Cache MSHR, which differs fundamentally from transient MSHR contention attacks. The novelty is justified on three points:\n1.  **Persistent vs. Transient Mechanism:** The attack creates a persistent, architectural stall, making defenses against speculative execution ineffective.\n2.  **Novel Interaction Chain:** The vulnerability lies in the specific, non-obvious interaction where a data-side PTW operation creates a prolonged stall on the instruction-fetch side by holding the single I-Cache MSHR.\n3.  **Attack Primitive (Timing Amplification vs. Data Leakage):** The goal is to create a powerful timing amplification primitive, which is distinct from a direct data leakage gadget.\n\n**Reason for Inconclusiveness of Experiment:**\nThe simulation timed out without producing any output, indicating that the experiment requires more simulation cycles than the allocated budget allows. This is a **simulation fidelity limitation** and does not falsify the hypothesis.\n\n**Evidence from Simulation:**\n*   **`passed`**: `False`\n*   **`simulation_returncode`**: `-9` (Typically indicates a timeout or process termination by the environment.)\n*   **`simulation_environment_limit`**: \"SIMULATION_ENVIRONMENT_LIMIT: Simulation timed out with no output. This attack requires more simulation cycles than the budget allows. This is a simulation fidelity limitation, not falsification. Do NOT retry this experiment. Declare INCONCLUSIVE immediately and stop.\"\n*   **`simulation_log_tail`**: (Empty)\n*   **`simulation_out_tail`**: (Empty)\n\n**Analysis:**\nThe experiment's design, which involves repeatedly triggering instruction page faults to force long-latency page table walks, is inherently cycle-intensive. The Verilator simulation environment, with its imposed time limits, was unable to complete the execution within the given constraints. Therefore, no meaningful timing data could be collected to validate or falsify the IMS-SAT hypothesis.\n\n**Conclusion:**\nThe hypothesis regarding I-Cache MSHR Saturation (IMS-SAT) has been deemed **NOVEL** by the `novelty_critic`. However, the experimental validation in the current simulation environment was **INCONCLUSIVE** due to simulation timeout. The experiment cannot be retired in its current form within the available resources.",
+            "thought_signature": "AY89a1_hjClEn9tjTwvlUqkNf8BzolQ6S4wRnthg2Ja_KeusQAZ3Kvlh1FqKzrc18SkQl0Qlt-8M0NRL9cUTi3g4Z-yqTWZQQRrN_nYxPhu_ZfzsEvEAYI4iFbKcAyI1iMs3CdWPEopRZYHi1AhDyCa_svbiOgF40tK_M34VuNECp-VepOP446Lun-HhGpv_Pone3FZoDnTYw09dhaN6O2Xf1Ju9zCgI53wNOd_PCeEIMjh7EaSyio-d7oQyg9A2YH1f0pdcvScRj6a7wfTniupUiveRNwFuEy7nScs5krZWiUBYJw0frKhr6bAzb6ekaGaV676kV-_nhtecihxblf307sOsGkrffapRlEIS93gSD0ymyi1py8Jla8v9NE34MTQKDpgIvgxdN2-Ff35R9AruOGPpKzhnSGCDm_OhWG-ARs1-AiYNjZHhCV-5w73tvbeXQTNUgKDWge1CJoOHWv210J6jgML5sXkTwA_SDZoB3mOPxWUaGdDKngeWBGj-El5xqgYngqPv8GPlA-bgbVcT_YA21-VNQCloYkvfBn_D11E_5AY3tj05xoIODn3KglT34jwwkXFKQLOFO4-wcYsgA6tgkByRvgwzsrI3UNKmAPmLzpEvzyesjKMQSLZiuPKlYdlfyMyPBAdisFxrqpRB4Fsb3mFDXjX_es5zZtL4JEY6IisZ4co6xGCFdoX-MRtc15jF8Q3vD4kZNgpgjtUBp89QKs9reFUGdL2AL5NROzeALE-3A43VZV3mG7dVSEEu8VfJ0zicVukDNGorjORd-DqFArRBnvgugNW-lWBcs9dN_fz_oJ28jufJs7lP97ZlniQIZv9yRLNRbD_Up9Ds2rP4TF9I0QpPL_KPg4aaJCHz6iI13_F70DFNuuvTWlBaBk1llhxm72hYVoGHUId7hwSWb9lk3SY1UvwGl6CgK9nZLkAdXmIWC_gjS7oEQPNwVnCFKHcSdWmf34Mtygh0iEl5oOM6XdTCEL3o897wiM69HzcGXbDilQ8Rsp2Z9qO2PPi066fGR5SbIrofQXpBNkgXaFJ4yGjczj-X-j2M_s2iOuqQbS4A6qrs5_nKcZKl3DV6Qkf9Vp8Wvmtpq1IACxWXxzvgtYLVniBDKitBxdyRkLldGD6QIh9rtAEGAOPBDBscbCJX3GzCL2-LXqHxST3nvShVWzP7mva6asrWdxiuoLHzIHLYZjBrb-jwzH-3ku1fUjrp4z0hFxnSpqq-_1a460ILb7jq-JXSYuYQLaJq36QAGcfluazIAyXFLQYamsnpKPNHcHy67950DsqeOSDyNAt0BEI2N-a6pK1_pjsYOgNYwNySkvyfV4wwyX52yTTvDffnevnf_LnpCC8mLyzRj7xxY2jhNUFkgu-Rx6UQ4Ih_RjsJc1ciTcu76Va2IiDuciOUvEgftnWIr0vlfZ4KNkXGOmt3fQB4pTHGg-vaSVQgFf7cSMQjpyQ7VR-mygBDVbT7uYEhC72h1jT2ZZ8EwDJ9BZA1FvNBDjMY6xyVzYumSdrHhej7xjU93_BHgU5xH8z0ZXmo03zU15oqxyg4w8hJCWrOCmaB1JxxEeff83eC0_jFw-PXHD8mo4mWGtAXBu3oqj0h4P19LgmvfF5PQ6w2ApG8Asumoh1Z9mHtsW5XjX13BzH8hqgnT99ucmQaSIt_nnTu4QIrJnhJOMg9NmBXB7Cbx9Gk7epGpqyNs-NlJY8rac3KE2LZS6TdAbyW_Ni_N-MvQUwpbZth_QCOHNJi8CMPv8mQz2WdEbJE6QAkqZGdzkC1p0Zl9A_kWAyTfzGyzQWbyzxxfR8Y0UcIkRqIvAtV4TNkyui07-G80kG9tgOE8zsygP_iIBY9osOFfvknznZ-8EHqdbuoFttJTgV8dNmyTyjFT7yCc4SjwhdL29Erb6eR0j1JCr43gjeJo0Qt4WJV24vfOlAdHeGcEqcdffFKiH51aGUqTAKJtpBTbPfFMrfqqWcoTZO-RG9uVrf8opX1r1XbbUOByTrtkXkkD4zZcd8Rn_cu3AOlLnhCxpmeUSkfV7gZYcEGf2YgEnemPzpJs-1RknqqPKZKGSgTrO8_H7I-h63_v2HLT0aHDV3K2u8gpk7M7b8uW94qmpWW8gO_BuiYamlxhJGgV_UUQ5u-XUK6p9TlHB1950Ldhqqz2az3OXMryEuhJy4pbYtAPcrUGXBI6moUI3QyNEgZqIvDDQr9piAqHP-RXJ7GuCkvUsIfDFbn_PEZjZV8BEMtYg8Q3YCB9Yth3zG2BOW2qwKWRFjFgU5k5smucpzZDNEIE2n56E6dpQpslvnAanhLwnF4OYntOPlZfPeanNleHbe673y_4cp6VUBYNPvFHl41Ir_JgQntLNqLpPVtNf9Jtcd_KC1DhaWvE_GGLpiAbu54P1_dM77chbC67VcDWQWkmmVAVM7JOoRtcOGbf1sh1cvri-fg9JBTmFr5IXULY91nUHM-jp4aP8lG00It550wyuMxH9KZQ1CJmAkfbnJ9Se3Fz9pKB_1khElPtbG3oIB7_Z-3APx4x0z5BVAGlUFJ45RgZD74xJAMw1OhzOmcxy2qmJmIUtEzEI-Oc9a8vAm5Z0jbCD8P-eYevcVtV2HZBDVY0z8kkfpdDLn8EAynZqi6Tzb9iiS6GVvn0jTJRQ2MfzxYzL0RNTFBmIdaTyNKQmnR3-QsuKg9vwP8_7fHPaepYJoMyJSccdpislyJ0_sRgzkgwn5wdjZP8jMB0Fp-6rDI-1b3lPlG4ihRpY-ynuEAGTTdJdfsuMKw7GC7yiftfdV706gKFlglRj1DtQOrG9s3PpnpqufN4COwIW1DozAavX9Lt-SJgzmNQJ6kuCZipkbvPDbvdl3cmdhitxcr6aPyXWlFHmrffQYiFLpECpOm4dsTsYum66Se3Mz21ngqrJClM79ns9-y6jmhHmIQl5vF5UNQXg7Vk08BUzVMPbO31RNLlf9v6yYqm0qdB8019H24R1zB-0Mwzkr5AQ6qrGDmlncolbbdVzURxkyKPndVIFOLoOxE65ODkrq29vUB20TlEZbw0rtqQUGg0wPIrDmg86QRVuGYZgcDolQCNWiIwKRMN8hZCu2sH1EDR8DgiZtV9e-dsEn0U0wU4WSqtgxUamhTE9x2ptmjrPcy51UNAzQBcVY5dwqu_-00LIXHVHAjcFfur3qCOXLtkLnEkEnAFOxp-XzoGX214xF67qFDJrC58I6oEZ8wLGoL2vAd-kqaXJby-hzpoZ1X_vHuMAFVL9sMa8mzGFLha_Rm5SbE-F6NR4eOPFrUn-AMdMiCh92-XxfU2A0985TbloYClIYNEzVmoUIwsQDrz-Dc86lsE0Mo-y_Bg6AmFAkZVPTr5eRCxgMav3qdJEO8sgcsCla6tYxE4IXPE9zq9lxuXh_NqgBRvyu_4v7xwsprpoJgN_uI1u6iw0Lds3eKCLH9Ub1vVsKaG1u9TRToQdXBZQUKQhaVFZdEzMHMxyssmdhpck3UY40-v0OGk1GqPTWJAq0OHvEgMET4RaUUz9ZifKJLv62XJJSzcJ8HrtUpLd2OLRigVLOzcKUBlNLWAAcabEceZYHSMEgHPK-0jRMbaax5D-DmOPj4znI02YCz3eVTvPbEuh4Ay0Thb8WhtSWO3uf7ICmzWcV3ZDaCK1FEfWMDr0yW2e1_QsSDVcxtmRzKCImzZ_e3lTTRdCgjVTIYCOnIou173_lZYWfbcqWKF0UUMRm2gWd7TBQGdqVUOpTm3_qj-f0NGp6U8OmdI5zt5XinqLRXQZvAWrwmjVNGZwwKiB0YpIuLNLbF74mq0X02TPfr0Pyax5H3ZBVzKV2WdD6elF8n791w159zGnSUmppckQfDlKfWxIoYWMF6Gr1LapSrgDtvW1iRxFLkXsLSdgdWv1u7k3jS7bAN5CejY7sZveerJWy-EqqJpPIozr275qgaC7A6hJn-_k6R57g12TTptwXUdyyNDD-0N_tNDlUIFf9lqN3wpDbM8HD7qCziK-yfnNPsCToQ9sScQar3j2IaIWttG8p4nKOJ6spfmQRbpR7c7KpHYDIPldvc1SAbOe5gY2zTymT-yc0ID81rqLQwpdp8fLlBbKZEqZMgTzGU2zq7qJ0WufwGvVS55kacd2oZPolnU4DRJoiooI8-FVJUWD-nDYZc4jYbvWt7awoCXtUClvv6X7HvP8YJ3EaXfrVCEmiHiSNf2htEGQEHZRhCuXk6VoSejBDCivhwFxZRp4K6FK7IJfTGD9DCi7PL9LqdMr68Mi9b59_MsJaVT-EOVeN91iqoFoNKv9tIlaeJo84ZtjI_l-PdU5mEN4qQsoHj7rBo3B5_u-T8FAUFls6NFQ2oSbOkYUCIF6xfCytSkdteYb5caRZEBGYF50Bwi-_ZVcpWKxc5ukcq2ezLpbjA6MgB-K0Ql9D54IkLOisyW05hLO5pZCllIVeVpw2tCuspOzDVTU-BqhkFbmjmTGqh8RXgw3jEe8FtOP0ENYqCqMxfs4-1dZ4EfhrDxtb7Y4IRilF5pU6IGtCKS3ZrSoibmddFckUla4jxlmdfxHZLrV7_6R2wu3fgc1MgsBjrVpMg9Gk9BnpwriDc-rCperQTvIgzf0p8z2GS1M07"
+          }
+        ],
+        "role": "model"
+      },
+      "finish_reason": "STOP",
+      "usage_metadata": {
+        "cache_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 29119
+          }
+        ],
+        "cached_content_token_count": 29119,
+        "candidates_token_count": 863,
+        "candidates_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 863
+          }
+        ],
+        "prompt_token_count": 30273,
+        "prompt_tokens_details": [
+          {
+            "modality": "TEXT",
+            "token_count": 30273
+          }
+        ],
+        "thoughts_token_count": 722,
+        "total_token_count": 31858,
+        "traffic_type": "ON_DEMAND"
+      },
+      "invocation_id": "e-53f7e799-d024-4f7a-b8d4-6861016f6d53",
+      "author": "validator",
+      "actions": {
+        "state_delta": {},
+        "artifact_delta": {},
+        "requested_auth_configs": {},
+        "requested_tool_confirmations": {}
+      },
+      "node_info": {
+        "path": "Boom_vulnerability_agent@1/validator@1"
+      },
+      "id": "9ea60276-ad83-45ea-a37d-0e231cee4d29",
+      "timestamp": 1793116919.2861364,
+      "is_final_response": true
+    }
+  ],
+  "responses": [
+    {
+      "author": "explorer",
+      "event_id": "750ed59d-3000-490d-a139-2481c6f65553",
+      "is_final_response": false,
+      "text": "## EXPLORER ATTACK SURFACE REPORT\n\n### PRIORITY 1 (highest novelty / sharing risk)\n**Loop Predictor**: A small, specialized predictor that is a prime candidate for a novel contention-based attack due to its small size and stateful, multi-counter design, which is not covered in the provided prior art.\n  - Key parameters: `LoopNEntries`: 16, `age_counter`: 3 bits, `conf_counter`: 3 bits, `iterations`: 12 bits\n  - Sharing risk: The predictor is core-local but its state is not flushed on context switch, allowing cross-ASID and cross-privilege-level interference.\n  - Observable effect: An attacker could poison the 16 entries with their own loop patterns, causing mispredictions and measurable timing delays when a victim process attempts to execute its own loops.\n  - Suggested angle: An attacker process trains the loop predictor with specific loop structures to evict or corrupt the victim's loop entries, then times the victim's execution to detect misprediction-induced stalls.\n\n**I-Cache MSHR Bottleneck**: The extreme asymmetry between the single I-Cache MSHR and the eight D-Cache MSHRs creates a unique, implementation-specific resource contention channel.\n  - Key parameters: I-Cache `nMSHRs`: 1, D-Cache `nMSHRs`: 8\n  - Sharing risk: This is a core-local resource, but contention is shared by all processes and privilege levels running on that core. A user-level process can create a bottleneck that affects the kernel.\n  - Observable effect: An attacker can induce frequent I-Cache misses, monopolizing the single MSHR. This stalls the entire frontend, and the resulting delay would be observable by timing any victim process activity.\n  - Suggested angle: Investigate if an attacker can fill the I-Cache MSHR to stall instruction fetch for a victim, amplifying the timing signature of other events like victim D-Cache or TLB misses.\n\n**Tournament Chooser Table**: The meta-predictor that selects between TAGE, BIM, etc., is itself a shared table that can be attacked through aliasing.\n  - Key parameters: `ChooserNSets` (derived): 11 (2048 entries), `ChooserCntSz`: 2 bits\n  - Sharing risk: Like other BPU components, it is shared across ASID/privilege boundaries due to not being flushed on context switch.\n  - Observable effect: An attacker could poison the chooser table entries to force the processor to select a suboptimal predictor for a victim's branches, leading to a higher misprediction rate and observable timing delays.\n  - Suggested angle: Create branch patterns that cause specific chooser entries to become saturated, then measure execution time of a victim whose branches map to those same chooser entries.\n\n### PRIORITY 2\n**Compressed BTB (CBTB)**: This structure is much larger than the main BTB, and its interaction and aliasing properties are distinct from the already-studied main BTB.\n  - Key parameters: `nCBTBEntries`: 256, `nBTBEntries`: 32\n  - Sharing risk: Shared across ASID and privilege boundaries.\n  - Observable effect: Attacker-controlled aliasing in the 256-entry CBTB could evict a victim's branch targets, forcing a misprediction or a slower lookup from another structure.\n  - Suggested angle: Characterize the conditions under which an entry is allocated into the CBTB vs. the main BTB, and devise an eviction strategy based on CBTB indexing to cause victim mispredictions.\n\n**I-TLB / D-TLB**: These are extremely small (16 entries), making them highly susceptible to classic cross-ASID contention attacks.\n  - Key parameters: `ITLB_SIZE`: 16, `DTLB_SIZE`: 16, `ASID_WIDTH`: 9\n  - Sharing risk: Entries for different ASIDs can coexist but will evict each other in this small, fully-associative or low-associativity structure, creating direct cross-domain contention.\n  - Observable effect: An attacker can fill the TLB with translations for their own ASID, evicting a victim's translations and causing a slow page-table walk for the victim that is easily measured.\n  - Suggested angle: Re-evaluate a simple cross-ASID TLB eviction attack (a-la classic TLBleed), which was not explicitly listed as \"blocked\" for the I-TLB or D-TLB in the prior art.\n\n### PRIORITY 3 (lowest priority / most thoroughly studied in prior literature)\n**L1 Data Cache**: A classic Prime+Probe or Flush+Reload target whose behavior is well-understood but remains a valid attack surface.\n  - Key parameters: `nSets`: 64, `nWays`: 8, `Replacement Policy`: LRU\n  - Sharing risk: Shared across all ASIDs and privilege levels on the core, leading to direct eviction-based channels.\n  - Observable effect: Attacker measures timing difference between accessing a cache set they previously filled versus one that a victim has since accessed, revealing the victim's memory access patterns.\n  - Suggested angle: Use as a baseline for comparison or as the observation mechanism for a more novel, cross-structure attack.\n\n### CROSS-STRUCTURE INTERACTIONS\n- **I-Cache MSHR -> PTW -> D-Cache**: A high-novelty chain. An I-Cache miss that also misses the I-TLB will occupy the single I-Cache MSHR, triggering a Page Table Walk, which in turn generates load traffic in the D-Cache to fetch PTEs. An attacker could potentially observe D-Cache contention that reveals a victim's instruction-side page faults.\n- **Loop Predictor -> Chooser Table**: Manipulating the Loop Predictor's accuracy for a given branch could influence the state of the corresponding Chooser entry, potentially degrading the prediction accuracy for unrelated victim branches that alias to the same Chooser entry.\n- **uBTB / BTB / CBTB Hierarchy**: A miss in the small uBTB (8 entries) may be served by the main BTB (32 entries), and a miss there may access the CBTB (256 entries). The timing difference between a hit at these different levels, combined with their different indexing and aliasing rules, could leak information.\n\n### RECOMMENDED STARTING POINT\n**Loop Predictor**: This is the best entry point because it is a highly specialized, non-standard component with a very small number of entries (16), making it easy to reason about and create contention. Its novelty is high as it is not mentioned in the provided list of previously studied mechanisms."
+    },
+    {
+      "author": "vulnerability_research_agent",
+      "event_id": "cc7a0452-0db6-449a-9dfc-a71a48fc832b",
+      "is_final_response": false,
+      "text": "## EXPLORER STARTING POINT\nThe Explorer report recommended starting with the **Loop Predictor**. This was chosen due to its high novelty risk, small size (16 entries), and stateful design (`age_counter`, `conf_counter`), making it an excellent candidate for a contention-based side channel not covered by the provided prior art.\n\n## CRITIC LOG\nCRITIC_LOG[1]: NOT_NOVEL | The proposed mechanism is a standard contention-based (Prime+Probe) side channel applied to a new buffer, which does not represent a novel attack primitive.\nCRITIC_LOG[1]: EXTENSION_ATTEMPT | Changed from a simple contention on the Loop Predictor to a cross-structure attack where manipulating the Loop Predictor's state is used to poison the Tournament Chooser Table.\n\n## NOVELTY STATEMENT\n*   **(a) which specific prior works you are building on:** We build upon the established principles of contention-based attacks on branch prediction units, including attacks on tournament predictor chooser/selector tables. These works demonstrate that forcing a processor to select a suboptimal predictor for a victim's branches can lead to measurable timing delays.\n\n*   **(b) exactly what is different about your proposed mechanism, target, or finding:** The proposed mechanism is a novel cross-structure attack that uses the specialized **Loop Predictor** as an actuator to maliciously manipulate the state of the main **Tournament Chooser Table**. An attacker crafts loop patterns that alias with a victim's branch addresses in the Chooser Table. By controlling whether their own loops are predicted correctly or incorrectly by the Loop Predictor, the attacker can poison the 2-bit counters in the Chooser Table, forcing it to distrust the more accurate TAGE predictor for the victim's unrelated branches. The primary target is the Chooser Table; the Loop Predictor is the tool.\n\n*   **(c) why that difference is not cosmetic:** This is not a simple contention attack on a single buffer. The attacker is not merely evicting victim entries from one structure. Instead, they are leveraging the state of a specialized unit (Loop Predictor) to indirectly control the behavior of a separate meta-predictor (the Chooser Table), which in turn degrades the performance of a third, general-purpose predictor (TAGE). This demonstrates a novel, indirect method of influencing the processor's prediction decisions for a victim's code, representing a more sophisticated interaction than a direct Prime+Probe.\n\n## NOVELTY VERDICT\n*The `novelty_critic` has not yet been called on the revised hypothesis.*\n\n## FROZEN HYPOTHESIS\n*The hypothesis is not yet frozen, pending review from the `novelty_critic`.*\n\n## APPLICABILITY AND IMPLEMENTATION PLAN\n*The plan is not yet finalized, pending a NOVEL verdict.*\n\n"
+    },
+    {
+      "author": "vulnerability_research_agent",
+      "event_id": "c316ca18-3821-4282-9879-19a8e78109f1",
+      "is_final_response": false,
+      "text": "## EXPLORER STARTING POINT\nThe Explorer report recommended starting with the **Loop Predictor**. This was chosen due to its high novelty risk, small size (16 entries), and stateful design (`age_counter`, `conf_counter`), making it an excellent candidate for a contention-based side channel not covered by the provided prior art.\n\n## CRITIC LOG\nCRITIC_LOG[1]: NOT_NOVEL | The proposed mechanism is a standard contention-based (Prime+Probe) side channel applied to a new buffer, which does not represent a novel attack primitive.\nCRITIC_LOG[1]: EXTENSION_ATTEMPT | Changed from a simple contention on the Loop Predictor to a cross-structure attack where manipulating the Loop Predictor's state is used to poison the Tournament Chooser Table.\nCRITIC_LOG[2]: NOT_NOVEL | The proposed mechanism is a specific instance of a known contention attack on a tournament predictor's chooser table, not a fundamentally new class of cross-structure attack.\nCRITIC_LOG[2]: FULL_REVISION | moved to I-Cache MSHR Bottleneck\n\n## NOVELTY STATEMENT\n*   **(a) which specific prior works you are building on:** We build on the principle of resource contention side channels, where an attacker monopolizes a shared microarchitectural resource to degrade a victim's performance. We also acknowledge prior work like `ResidualEvil` that has identified MSHRs as a source of information leakage, specifically in the context of transient execution attacks.\n\n*   **(b) exactly what is different about your proposed mechanism, target, or finding:** Our proposed mechanism is a non-speculative, architectural resource exhaustion attack, not a transient execution attack. It specifically weaponizes the design asymmetry in the BOOM core where the I-Cache has only **one** MSHR versus eight for the D-Cache. The attack works by intentionally creating a long-latency I-Cache miss (one that also misses the I-TLB, forcing a full page table walk) to occupy this single MSHR for a prolonged period, causing a persistent stall of the entire instruction fetch frontend.\n\n*   **(c) why that difference is not cosmetic:** The difference is fundamental. We are not exploiting a transient, post-squash state to leak a secret bit (as in `ResidualEvil`). We are creating a persistent, architectural denial-of-service on the instruction fetch mechanism. This allows an attacker to amplify the timing of other events, creating a powerful timing channel, rather than leaking data directly. The attack is contingent on the specific, documented hardware parameter (`I-Cache nMSHRs = 1`), making it a concrete, implementation-specific vulnerability, not an application of a general theory.\n\n## NOVELTY VERDICT\n*The `novelty_critic` has not yet been called on the revised hypothesis.*\n\n## FROZEN HYPOTHESIS\n*The hypothesis is not yet frozen, pending review from the `novelty_critic`.*\n\n## APPLICABILITY AND IMPLEMENTATION PLAN\n*The plan is not yet finalized, pending a NOVEL verdict.*\n\n"
+    },
+    {
+      "author": "vulnerability_research_agent",
+      "event_id": "70d4373c-fdaa-4b1e-86a2-8581c19fe820",
+      "is_final_response": false,
+      "text": "## EXPLORER STARTING POINT\nThe investigation began with the **Loop Predictor**, as recommended by the EXPLORER ATTACK SURFACE REPORT. This structure was prioritized due to its high novelty potential, stemming from its small 16-entry capacity and unique stateful design (including `age_counter` and `conf_counter` fields). These characteristics made it a prime candidate for a contention-based side channel that was not covered in the provided list of known vulnerabilities or inconclusive hypotheses.\n\n## CRITIC LOG\n*   CRITIC_LOG[1]: NOT_NOVEL | The proposed mechanism is a standard contention-based (Prime+Probe) side channel applied to a new buffer, which does not represent a novel attack primitive.\n*   CRITIC_LOG[1]: EXTENSION_ATTEMPT | Changed from a simple contention on the Loop Predictor to a cross-structure attack where manipulating the Loop Predictor's state is used to poison the Tournament Chooser Table.\n*   CRITIC_LOG[2]: NOT_NOVEL | The proposed mechanism is a specific instance of a known contention attack on a tournament predictor's chooser table, not a fundamentally new class of cross-structure attack.\n*   CRITIC_LOG[2]: FULL_REVISION | moved to I-Cache MSHR Bottleneck\n*   CRITIC_LOG[3]: NOVEL | The proposed mechanism exploits a non-obvious, persistent architectural stall caused by the cross-component interaction of an I-TLB miss, a page table walk, and the monopolization of the single I-Cache MSHR, which differs fundamentally from transient MSHR contention attacks.\n\n## NOVELTY STATEMENT\n*   **(a) which specific prior works you are building on:** We build on the principle of resource contention side channels, where an attacker monopolizes a shared microarchitectural resource to degrade a victim's performance. We also acknowledge prior work like `ResidualEvil` that has identified MSHRs as a source of information leakage, specifically in the context of transient execution attacks.\n\n*   **(b) exactly what is different about your proposed mechanism, target, or finding:** Our proposed mechanism is a non-speculative, architectural resource exhaustion attack that weaponizes the specific I-Cache `nMSHRs=1` vs D-Cache `nMSHRs=8` design asymmetry in the BOOM core. The attack works by intentionally creating a long-latency I-Cache miss (one that also misses the I-TLB, forcing a full page table walk) to occupy this single MSHR for a prolonged period, causing a persistent stall of the entire instruction fetch frontend.\n\n*   **(c) why that difference is not cosmetic:** This is a fundamentally different class of attack from transient execution exploits. It creates a timing amplification channel, not a data disclosure gadget. The novelty lies in identifying and weaponizing the prolonged architectural stall caused by the interaction between the single I-Cache MSHR, an I-TLB miss, and a full page table walk, a mechanism not described in prior art.\n\n## NOVELTY VERDICT\n**NOVEL**\n\n**VERDICT_REASON:** The proposed mechanism exploits a non-obvious, persistent architectural stall caused by the cross-component interaction of an I-TLB miss, a page table walk, and the monopolization of the single I-Cache MSHR, which differs fundamentally from transient MSHR contention attacks. The novelty is justified on three points:\n1.  **Persistent vs. Transient Mechanism:** The attack creates a persistent, architectural stall, making defenses against speculative execution ineffective.\n2.  **Novel Interaction Chain:** The vulnerability lies in the specific, non-obvious interaction where a data-side PTW operation creates a prolonged stall on the instruction-fetch side by holding the single I-Cache MSHR.\n3.  **Attack Primitive (Timing Amplification vs. Data Leakage):** The goal is to create a powerful timing amplification primitive, which is distinct from a direct data leakage gadget.\n\n## FROZEN HYPOTHESIS\n*   **Cited Vulnerability Specification:** I-Cache MSHR Saturation (IMS-SAT)\n*   **Frozen Hypothesis:** An attacker on a single BOOM core can create a persistent, architectural denial-of-service on the core's instruction fetch pipeline. By executing code that generates a continuous stream of I-Cache misses to virtual addresses that are also not in the I-TLB, the attacker can monopolize the single I-Cache MSHR. The MSHR remains occupied for the entire duration of the subsequent, long-latency page table walks, stalling the frontend and preventing any other process (including higher-privilege ones) from fetching new instructions. This powerful stall primitive can be used as a timing amplification channel to conduct measurements of other system events.\n*   **Success Criteria:**\n    1.  An attacker process must be able to create a list of virtual addresses that are uncached and untranslated.\n    2.  By jumping to these addresses in a loop, the attacker must be able to induce a measurable increase in the execution time of a separate, co-located victim process.\n    3.  The observed slowdown in the victim must be significantly greater than the slowdown observed from a simple I-Cache miss attack that hits in the I-TLB, demonstrating that the amplification comes from the PTW interaction.\n*   **Unresolved Questions:**\n    1.  What is the precise cycle cost of a full page table walk in this configuration, and how does it correlate to the observed victim slowdown?\n    2.  How does system memory layout and L2 cache state affect the reliability and duration of the stall?\n    3.  Can this primitive be used to amplify a known, weaker side channel into a practical exploit?\n\n## APPLICABILITY AND IMPLEMENTATION PLAN\n*   **Applicability to BOOM:** This hypothesis is directly applicable to the target BOOM configuration. It is based on specific, documented hardware parameters (`I-Cache nMSHRs = 1`, `D-Cache nMSHRs = 8`) and the standard behavior of its virtual memory subsystem (I-TLB miss triggering a PTW). The vulnerability is an emergent property of the interaction between these components.\n\n*   **Implementation Plan for `vulnerability_generator`:**\n    1.  **Attacker Program:**\n        *   Allocate a large region of memory.\n        *   Unmap most of this memory using `sfence.vma` or by manipulating page table entries to ensure subsequent accesses will miss in the TLB.\n        *   Create a \"gadget\" that consists of a series of indirect jumps to addresses within this unmapped region.\n        *   Wrap this gadget in a loop to create a continuous stream of I-Cache and I-TLB misses.\n    2.  **Victim Program:**\n        *   A simple program that performs a fixed amount of work (e.g., a loop of integer operations) and measures its own execution time using `rdcycle`.\n    3.  **Experiment Flow:**\n        *   **Run 1 (Control):** Execute the victim program alone to establish a baseline execution time.\n        *   **Run 2 (Experiment):** Execute the victim program and the attacker program concurrently on the same core.\n        *   **Analysis:** Compare the victim's execution time from Run 1 and Run 2. Success is achieved if the time in Run 2 is substantially and predictably longer than in Run 1, confirming the frontend stall.\n\n"
+    },
+    {
+      "author": "vulnerability_generator",
+      "event_id": "39fc716c-83f4-48fe-9bb1-a21503aef22e",
+      "is_final_response": false,
+      "text": "The experiment for IMS-SAT is inconclusive due to simulation environment limitations. The simulation timed out, indicating that the chosen attack mechanism (repeated instruction page faults triggering long page table walks) generates too many cycles for the available simulation budget. This is a simulation fidelity limitation, not a falsification of the hypothesis.\n\nI am unable to proceed with further experiments on this hypothesis within the current simulation environment constraints.\n\nI will now transfer the results to the validator.\n"
+    },
+    {
+      "author": "validator",
+      "event_id": "30c1d11a-5420-4d86-af55-497a44b76e5a",
+      "is_final_response": true,
+      "text": "The experiment `ims_sat_v1` on the I-Cache MSHR Saturation (IMS-SAT) hypothesis is **INCONCLUSIVE**.\n\n**Reason for Inconclusiveness:**\nThe simulation timed out without producing any output, indicating that the experiment requires more simulation cycles than the allocated budget allows. This is a **simulation fidelity limitation** and does not falsify the hypothesis.\n\n**Evidence from Simulation:**\n*   **`passed`**: `False`\n*   **`simulation_returncode`**: `-9` (Typically indicates a timeout or process termination by the environment.)\n*   **`simulation_environment_limit`**: \"SIMULATION_ENVIRONMENT_LIMIT: Simulation timed out with no output. This attack requires more simulation cycles than the budget allows. This is a simulation fidelity limitation, not falsification. Do NOT retry this experiment. Declare INCONCLUSIVE immediately and stop.\"\n*   **`simulation_log_tail`**: (Empty)\n*   **`simulation_out_tail`**: (Empty)\n\n**Analysis:**\nThe experiment's design, which involves repeatedly triggering instruction page faults to force long-latency page table walks, is inherently cycle-intensive. The Verilator simulation environment, with its imposed time limits, was unable to complete the execution within the given constraints. Therefore, no meaningful timing data could be collected to validate or falsify the IMS-SAT hypothesis.\n\n**Instruction to Vulnerability Generator:**\nDo **NOT** retry this experiment (`ims_sat_v1`) as it will consistently hit the simulation time limit. The current simulation environment cannot adequately evaluate this hypothesis.\n\nPlease explore alternative experimental designs or a different attack surface if possible within the current simulation constraints."
+    },
+    {
+      "author": "validator",
+      "event_id": "9ea60276-ad83-45ea-a37d-0e231cee4d29",
+      "is_final_response": true,
+      "text": "The experiment `ims_sat_v1` on the I-Cache MSHR Saturation (IMS-SAT) hypothesis is **INCONCLUSIVE**.\n\n## NOVELTY STATEMENT\n*   **(a) which specific prior works you are building on:** We build on the principle of resource contention side channels, where an attacker monopolizes a shared microarchitectural resource to degrade a victim's performance. We also acknowledge prior work like `ResidualEvil` that has identified MSHRs as a source of information leakage, specifically in the context of transient execution attacks.\n\n*   **(b) exactly what is different about your proposed mechanism, target, or finding:** Our proposed mechanism is a non-speculative, architectural resource exhaustion attack that weaponizes the specific I-Cache `nMSHRs=1` vs D-Cache `nMSHRs=8` design asymmetry in the BOOM core. The attack works by intentionally creating a long-latency I-Cache miss (one that also misses the I-TLB, forcing a full page table walk) to occupy this single MSHR for a prolonged period, causing a persistent stall of the entire instruction fetch frontend.\n\n*   **(c) why that difference is not cosmetic:** This is a fundamentally different class of attack from transient execution exploits. It creates a timing amplification channel, not a data disclosure gadget. The novelty lies in identifying and weaponizing the prolonged architectural stall caused by the interaction between the single I-Cache MSHR, an I-TLB miss, and a full page table walk, a mechanism not described in prior art.\n\n## NOVELTY VERDICT\n**NOVEL**\n\n**VERDICT_REASON:** The proposed mechanism exploits a non-obvious, persistent architectural stall caused by the cross-component interaction of an I-TLB miss, a page table walk, and the monopolization of the single I-Cache MSHR, which differs fundamentally from transient MSHR contention attacks. The novelty is justified on three points:\n1.  **Persistent vs. Transient Mechanism:** The attack creates a persistent, architectural stall, making defenses against speculative execution ineffective.\n2.  **Novel Interaction Chain:** The vulnerability lies in the specific, non-obvious interaction where a data-side PTW operation creates a prolonged stall on the instruction-fetch side by holding the single I-Cache MSHR.\n3.  **Attack Primitive (Timing Amplification vs. Data Leakage):** The goal is to create a powerful timing amplification primitive, which is distinct from a direct data leakage gadget.\n\n**Reason for Inconclusiveness of Experiment:**\nThe simulation timed out without producing any output, indicating that the experiment requires more simulation cycles than the allocated budget allows. This is a **simulation fidelity limitation** and does not falsify the hypothesis.\n\n**Evidence from Simulation:**\n*   **`passed`**: `False`\n*   **`simulation_returncode`**: `-9` (Typically indicates a timeout or process termination by the environment.)\n*   **`simulation_environment_limit`**: \"SIMULATION_ENVIRONMENT_LIMIT: Simulation timed out with no output. This attack requires more simulation cycles than the budget allows. This is a simulation fidelity limitation, not falsification. Do NOT retry this experiment. Declare INCONCLUSIVE immediately and stop.\"\n*   **`simulation_log_tail`**: (Empty)\n*   **`simulation_out_tail`**: (Empty)\n\n**Analysis:**\nThe experiment's design, which involves repeatedly triggering instruction page faults to force long-latency page table walks, is inherently cycle-intensive. The Verilator simulation environment, with its imposed time limits, was unable to complete the execution within the given constraints. Therefore, no meaningful timing data could be collected to validate or falsify the IMS-SAT hypothesis.\n\n**Conclusion:**\nThe hypothesis regarding I-Cache MSHR Saturation (IMS-SAT) has been deemed **NOVEL** by the `novelty_critic`. However, the experimental validation in the current simulation environment was **INCONCLUSIVE** due to simulation timeout. The experiment cannot be retired in its current form within the available resources."
+    }
+  ]
+}
